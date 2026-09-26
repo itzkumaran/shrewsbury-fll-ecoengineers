@@ -2,8 +2,8 @@
 # robot.py
 #
 # Defines the Robot class for SPIKE Prime, handling motor and sensor initialization,
-# drive base configuration, and additional utility functions. This module also
-# centralizes all necessary imports so that mission files can use robot features
+# drive base configuration, and additional utility functions. This module also 
+# centralizes all necessary imports so that mission files can use robot features 
 # without redundant imports.
 #
 # Author: Bolton Robotics
@@ -53,11 +53,23 @@ except ImportError:
     TYPE_CHECKING = False
 
 if TYPE_CHECKING:
-    from typing import Optional
+    from typing import Any, Optional
     from typing_extensions import Final, Protocol
+
+    class MotorControlLike(Protocol):
+        """Structural type matching the motor control API."""
+
+        def limits(self, *args: Any, **kwargs: Any) -> None: ...
 
     class MotorLike(Protocol):
         """Structural type matching both Motor and NoOpMotor."""
+
+        @property
+        def control(self) -> MotorControlLike: ...
+
+        def reset_angle(self, angle: int) -> None: ...
+
+        def run(self, speed: int) -> None: ...
 
         def run_time(
             self,
@@ -109,14 +121,14 @@ else:
 
 #############################################
 # ROBOT DIAGRAM
-#############################################
-# The base robot is required to have:
+############################################# 
+# The base robot is required to have: 
 #   2 drive motors
 # The base robot may optionally have:
 #   0-2 attachment motors
 #   0-2 color sensors
 #
-# These are labelled in the diagram below. Your robot doesn't need
+# These are labelled in the diagram below. Your robot doesn't need 
 # to follow this exact layout.  The goal is more to identify the drive and
 # attachment motors and indicate whether they are on the left side or the right
 # side of your robot.
@@ -149,18 +161,22 @@ else:
 #############################################
 # Define Robot Parameters Here
 #############################################
-# Configuration parameters used by DriveBase.
+# Configuration parameters used by DriveBase.  
 # Methods which use these parameters include:
 #   r.robot.turn()
 #   r.robot.straight()
 #   r.robot.arc()
 #   r.robot.drive()
-TIRE_DIAMETER: int = 57  # mm
-AXLE_TRACK: int = 86  # distance between the wheels, mm
-STRAIGHT_SPEED: int = 400  # mm/sec
-STRAIGHT_ACCEL: int = 300  # mm/sec^2
-TURN_RATE: int = 300  # deg/sec
-TURN_ACCEL: int = 200  # deg/sec^2
+TIRE_DIAMETER: int = 56  # mm
+AXLE_TRACK: int = 130  # distance between the wheels, mm
+STRAIGHT_SPEED: int = 300  # mm/sec
+STRAIGHT_ACCEL: int = 100  # mm/sec^2; gentler acceleration reduces wheel slip
+# Small encoder-mode trim counters the gradual left drift.
+FORWARD_STRAIGHT_CORRECTION: float = -1.0  # deg/sec
+# Reverse needs its own trim because wheel load changes direction.
+REVERSE_STRAIGHT_CORRECTION: float = 0.0  # deg/sec
+TURN_RATE: int = 45  # deg/sec
+TURN_ACCEL: int = 45  # deg/sec^2
 
 #############################################
 # Define Robot Port Mappings
@@ -169,10 +185,9 @@ TURN_ACCEL: int = 200  # deg/sec^2
 # wired your robot.  If you don't have color sensor(s) or
 # attachment motor(s) you can comment them out.
 PORT_MAPPING: dict[str, Port] = {
-    "ldm": Port.C,  # Left Drive Motor (Required)
-    "rdm": Port.D,  # Right Drive Motor (Required)
-    "lam": Port.F,  # Left Attachment Motor (Optional)
-    "ram": Port.E,  # Right Attachment Motor (Optional)
+    "ldm": Port.B,  # Left Drive Motor (Required)
+    "rdm": Port.F,  # Right Drive Motor (Required)
+    "lam": Port.C,  # Left Attachment Motor (Optional)
     #"lcs": Port.A,  # Left Color Sensor (Optional)
     #"rcs": Port.B,  # Right Color Sensor (Optional)
 }
@@ -182,10 +197,10 @@ PORT_MAPPING: dict[str, Port] = {
 # Define Brain Orientation
 #############################################
 # Indicate which side of the brain faces the front of the robot.
-#
+#  
 #
 #               FRONT
-#
+#            
 #          ------<->------
 #         |      USB      |
 #         | A           B |
@@ -194,7 +209,7 @@ PORT_MAPPING: dict[str, Port] = {
 #         |               |
 #         | E           F |
 #         |               |
-#         |     <-()->    |
+#         |     <-()->    |             
 #          ---------------
 #               BOTTOM
 DISPLAY_ORIENTATION: Side = Side.BOTTOM
@@ -208,8 +223,8 @@ DISPLAY_ORIENTATION: Side = Side.BOTTOM
 # or upside down.  If your attachment motor is spinning in the wrong
 # direction or if your robot spins in circles when you are trying to
 # drive straight, you likely need to change one of these settings.
-LDM_POSITIVE_DIRECTION: Direction = Direction.COUNTERCLOCKWISE
-RDM_POSITIVE_DIRECTION: Direction = Direction.CLOCKWISE
+LDM_POSITIVE_DIRECTION: Direction = Direction.CLOCKWISE
+RDM_POSITIVE_DIRECTION: Direction = Direction.COUNTERCLOCKWISE
 LAM_POSITIVE_DIRECTION: Direction = Direction.CLOCKWISE
 RAM_POSITIVE_DIRECTION: Direction = Direction.CLOCKWISE
 
@@ -225,8 +240,24 @@ RAM_POSITIVE_DIRECTION: Direction = Direction.CLOCKWISE
 # Pyright checks structural compatibility against MotorLike / ColorSensorLike
 # automatically because Protocols use structural subtyping.
 
+class NoOpMotorControl:
+    """Motor control stand-in used by the NoOpMotor type stub."""
+
+    def limits(self, *, speed=None, acceleration=None, torque=None):
+        return None
+
+
 class NoOpMotor:
     """Motor-shaped object that silently does nothing when hardware is absent."""
+
+    def __init__(self):
+        self.control = NoOpMotorControl()
+
+    def reset_angle(self, angle):
+        return None
+
+    def run(self, speed):
+        return None
 
     def run_time(self, speed, time, then=Stop.HOLD, wait=True):
         return None
@@ -259,7 +290,7 @@ class NoOpColorSensor:
 ################################
 # The Robot class describes your robot including which motors and sensors
 # are present.  You may also choose to add custom methods like line following,
-# a wheel cleaning routine, gyro calibration, etc.
+# a wheel cleaning routine, gyro calibration, etc. 
 class robot:
     def __init__(self, port_mapping=PORT_MAPPING):
         """
@@ -272,7 +303,7 @@ class robot:
         """
         self.port_mapping = port_mapping
         self.display_orientation = DISPLAY_ORIENTATION
-
+        
         try:
             # Axis negation is valid in Pybricks but rejected by type stubs
             self.hub = PrimeHub(top_side=Axis.Z, front_side=-Axis.Y)  # pyright: ignore
@@ -285,7 +316,7 @@ class robot:
         # Ensure drive motors are defined, else fail
         if "ldm" not in self.port_mapping or "rdm" not in self.port_mapping:
             raise ValueError("Left and Right Drive Motors must be defined!")
-
+        
         try:
             self.ldm = Motor(
                 self.port_mapping["ldm"],
@@ -294,7 +325,7 @@ class robot:
         except Exception as e:
             print("Left drive motor initialization error", e)
             raise
-
+        
         try:
             self.rdm = Motor(
                 self.port_mapping["rdm"],
@@ -303,19 +334,22 @@ class robot:
         except Exception as e:
             print("Right drive motor initialization error", e)
             raise
-
+        
         try:
             self.robot = DriveBase(
                 self.ldm, self.rdm, TIRE_DIAMETER, AXLE_TRACK,
             )
-            self.robot.use_gyro(True)
+            # Encoder control avoids orientation-dependent gyro corrections.
+            self.robot.use_gyro(False)
             self.robot.settings(
                 STRAIGHT_SPEED, STRAIGHT_ACCEL,
                 TURN_RATE, TURN_ACCEL,
             )
+            self.robot.reset()
+            self._straight_drive_active = False
         except Exception as e:
             print("Drive base initialization error", e)
-
+    
         # --- Attachment motors (real or NoOp) ---
         self.lam: MotorLike = NoOpMotor()
         if "lam" in self.port_mapping:
@@ -326,7 +360,7 @@ class robot:
                 )
             except Exception as e:
                 print("Left attachment motor initialization error:", e)
-
+        
         self.ram: MotorLike = NoOpMotor()
         if "ram" in self.port_mapping:
             try:
@@ -336,7 +370,7 @@ class robot:
                 )
             except Exception as e:
                 print("Right attachment motor initialization error", e)
-
+        
         # --- Color sensors (real or NoOp) ---
         self.lcs: ColorSensorLike = NoOpColorSensor()
         if "lcs" in self.port_mapping:
@@ -344,7 +378,7 @@ class robot:
                 self.lcs = ColorSensor(self.port_mapping["lcs"])
             except Exception as e:
                 print("Left color sensor initialization error", e)
-
+        
         self.rcs: ColorSensorLike = NoOpColorSensor()
         if "rcs" in self.port_mapping:
             try:
@@ -355,6 +389,34 @@ class robot:
     #####################################
     # Custom Methods
     #####################################
+
+    def drive_straight(self, speed):
+        """Drive forward or backward while holding the current heading."""
+        if speed == 0:
+            self.robot.stop()
+            self._straight_drive_active = False
+            return
+
+        if not self._straight_drive_active:
+            self.robot.reset()
+            self._straight_drive_active = True
+
+        steering_correction = (
+            FORWARD_STRAIGHT_CORRECTION
+            if speed > 0
+            else REVERSE_STRAIGHT_CORRECTION
+        )
+        self.robot.drive(speed, steering_correction)
+
+    def stop_drive(self):
+        """Stop driving and require a new heading reference next time."""
+        self.robot.stop()
+        self._straight_drive_active = False
+
+    def drive_turn(self, rate):
+        """Turn in place and require a new heading reference afterward."""
+        self._straight_drive_active = False
+        self.robot.drive(0, rate)
 
     def show_battery_level(self):
         """Display battery level using LED ring and matrix."""
