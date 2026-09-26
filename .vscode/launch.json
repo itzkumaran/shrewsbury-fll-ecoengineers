@@ -13,7 +13,7 @@
         "ble",
         "--name",
         "lucky chicken",
-        "${workspaceFolder}/main.py"
+        "${workspaceFolder}/xbox_controller.py"
       ]
     },
     {
