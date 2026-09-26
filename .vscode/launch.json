@@ -6,6 +6,8 @@
       "type": "debugpy",
       "request": "launch",
       "module": "pybricksdev",
+      "subProcess": false,
+      "console": "integratedTerminal",
       "args": [
         "run",
         "ble",
@@ -19,6 +21,8 @@
       "type": "debugpy",
       "request": "launch",
       "module": "pybricksdev",
+      "subProcess": false,
+      "console": "integratedTerminal",
       "args": [
         "run",
         "ble",
@@ -32,6 +36,8 @@
       "type": "debugpy",
       "request": "launch",
       "module": "pybricksdev",
+      "subProcess": false,
+      "console": "integratedTerminal",
       "args": [
         "run",
         "ble",
