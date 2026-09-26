@@ -1,0 +1,50 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run on lucky chicken",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pybricksdev",
+      "subProcess": false,
+      "console": "integratedTerminal",
+      "args": [
+        "run",
+        "ble",
+        "--name",
+        "lucky chicken",
+        "${workspaceFolder}/xbox_controller.py"
+      ]
+    },
+    {
+      "name": "Run on BR-02",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pybricksdev",
+      "subProcess": false,
+      "console": "integratedTerminal",
+      "args": [
+        "run",
+        "ble",
+        "--name",
+        "BR-02",
+        "${workspaceFolder}/main.py"
+      ]
+    },
+    {
+      "name": "Run on BR-03",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pybricksdev",
+      "subProcess": false,
+      "console": "integratedTerminal",
+      "args": [
+        "run",
+        "ble",
+        "--name",
+        "BR-03",
+        "${workspaceFolder}/main.py"
+      ]
+    }
+  ]
+}
