@@ -330,7 +330,7 @@ Current values (verified on lucky-chicken-2):
   - Left drive motor: Port B, COUNTERCLOCKWISE
   - Right drive motor: Port F, CLOCKWISE
   - Left / right attachment motors: Port A / Port E
-  - TIRE_DIAMETER = 56 mm, AXLE_TRACK = 113 mm
+  - TIRE_DIAMETER = 56 mm, AXLE_TRACK = 113 mm (56 x 14 blue wheels; the wider 56 x 28 black wheels need 110 even though a ruler says 119; re-check AXLE_TRACK whenever you change wheels)
   - STRAIGHT_ACCEL = 500, TURN_ACCEL = 1000 (values above ~1000-10000 are rejected by Pybricks with "Invalid argument")
   - Gyro-assisted driving ON, HEADING_KP_MULTIPLIER = 8.0
 

@@ -21,7 +21,7 @@ This project is intended to be developed locally in VS Code, largely replacing d
 |---|---|
 | Drive motors | Left = Port B (`COUNTERCLOCKWISE`), Right = Port F (`CLOCKWISE`) |
 | Attachment motors | Left = Port A, Right = Port E |
-| Wheels | 56 mm diameter, `AXLE_TRACK` 113 mm (measured 112 mm) |
+| Wheels | 56 x 14 mm blue wheels; `AXLE_TRACK` 113 mm (gyro-calibrated, matches ruler 112 mm). The wider 56 x 28 black wheels were tested and need 110 mm |
 | Driving | Gyro-assisted, `STRAIGHT_ACCEL` 500, heading gain x8 |
 | Layout | Two rear drive wheels + front ball caster |
 
@@ -38,8 +38,9 @@ Measured accuracy: 300 mm commanded = ~300 mm driven; 90° turns within 1°; 3 m
 | D-pad Up / Down | Drive forward / backward |
 | D-pad Right / Left | Turn right / left in place |
 | RB / LB | Left attachment motor forward / backward |
+| X | Change speed: 1 Slow (60 mm/s, 22°/s turns) → 2 Normal (122 mm/s, 45°/s, default) → 3 Fast (250 mm/s, 60°/s); level shows on the hub screen |
 | Y | Start / stop recording (prints mission code when stopped) |
-| A | Replay the last recording |
+| A | Replay the last recording: same moves, speeds, timing and pauses as recorded; turns aim at the recorded gyro headings |
 
 ## Other robots
 

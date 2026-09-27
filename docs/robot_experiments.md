@@ -142,6 +142,41 @@ That's **93% less drift!** Over 3 meters of driving, the robot is now only off b
 
 ---
 
+## Experiment 7: Fixing record and replay
+
+**Problem:** The Xbox controller can **record** a path you drive and **replay** it. But the replay did not follow the path you drove.
+
+**Clue 1:** After turning, when you drove forward or backward, the robot **turned back** toward its old direction by itself.
+
+**Test:** Turn right 45°, then back up, and watch the gyro.
+
+| Version | Robot turned while backing up |
+|---|---|
+| Old code | −46° (it undid the whole turn!) |
+| Fixed code | 0.2° ✅ |
+
+**Why:** Every time you started driving, the code "reset" the robot's direction to zero. With gyro steering on, the robot then tried to point back to its *old* zero direction.
+
+**Clue 2:** When you let go of the D-pad, the robot keeps rolling a few millimeters, about 6 mm. The recording saved that roll as part of the "stop", and replay ignored it, so every move came up short.
+
+**Fixes:**
+- Don't reset the direction when starting to drive.
+- Add the rolling-after-release to the move before it.
+- Measure turns with the **gyro** instead of guessing from the wheels.
+- Before each replayed move, start from where the robot really is.
+- Make the printed mission code complete, so it can be pasted into a mission file.
+
+**Result:** You drove a path with 17 moves using the Xbox controller, then replayed it:
+
+| Moves | Worst difference |
+|---|---|
+| 9 straight drives | 1.3 mm (on a 562 mm drive!) |
+| 8 turns | 1.8° |
+
+**Lesson:** If one part of the code (the reset) fights another part (the gyro), the robot does something nobody asked for. Test each piece by itself to find which one is the problem.
+
+---
+
 ## Final robot settings
 
 | Setting | Value | Why |
@@ -150,7 +185,8 @@ That's **93% less drift!** Over 3 meters of driving, the robot is now only off b
 | Right drive motor | Port F | Found by the port test |
 | Attachment motors | Ports A and E | Found by the port test |
 | Wheel size | 56 mm | Printed on the tire |
-| Axle track | 113 mm | Calculated from the gyro, matches the ruler |
+| Wheels | 56 x 14 mm blue | We also tried wider 56 x 28 black wheels: less slipping, but no better replay |
+| Axle track | 113 mm | Calculated from the gyro, matches the ruler (black wheels would need 110 mm) |
 | Gyro steering | On, strength ×8 | Cut drift from 42 mm to 3 mm |
 
 **Remember:** `straight(+)` = forward, `turn(+)` = right.

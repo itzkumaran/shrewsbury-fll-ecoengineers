@@ -171,7 +171,7 @@ else:
 #   r.robot.arc()
 #   r.robot.drive()
 TIRE_DIAMETER: int = 56  # mm
-AXLE_TRACK: int = 113  # mm; gyro-calibrated on lucky-chicken-2 (was 130, over-rotated turns ~15%)
+AXLE_TRACK: int = 113  # mm; gyro-calibrated on lucky-chicken-2 with 56x14 blue wheels (matches ruler 112 mm). 56x28 black wheels would need 110.
 STRAIGHT_SPEED: int = 300  # mm/sec
 STRAIGHT_ACCEL: int = 500  # mm/sec^2 — gentler start/stop reduces ball-caster push drift (tested on lucky-chicken-2)
 HEADING_KP_MULTIPLIER: float = 8.0  # strong gyro heading hold; 8x gave least drift and least oscillation (lucky-chicken-2)
@@ -406,10 +406,12 @@ class robot:
             self._straight_drive_active = False
             return
 
-        if not self._straight_drive_active:
-            self.robot.reset()
-            self._straight_drive_active = True
-
+        # Do NOT call self.robot.reset() here. With gyro driving on, reset()
+        # zeroes the drive base angle while the gyro still reads the last
+        # turn, so the robot swings back to its pre-turn heading (measured:
+        # -46 deg while backing up after a 45 deg turn). drive() already
+        # holds the heading the robot has right now.
+        self._straight_drive_active = True
         self.robot.drive(speed, 0)
 
     def stop_drive(self):

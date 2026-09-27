@@ -17,7 +17,68 @@ left = r.ldm
 right = r.rdm
 left_attachement = r.lam
 drivebase = r.robot
-controller = XboxController()
+
+
+def connect_controller(max_ms=60000):
+    """Connect to the Xbox controller, retrying for up to max_ms.
+
+    One connection attempt often fails after a few seconds, especially
+    while the laptop is also connected to the hub over Bluetooth, so keep
+    trying instead of stopping with an error on the first try.
+    """
+    sw = StopWatch()
+    print("Connecting to Xbox controller...")
+    print("  Hold the pair button on the controller until the Xbox logo flashes fast.")
+    while True:
+        try:
+            c = XboxController(timeout=10000)
+            print("Xbox controller connected after {0} s".format(sw.time() // 1000))
+            return c
+        except OSError:
+            if sw.time() > max_ms:
+                print("Could not connect to the Xbox controller.")
+                print("  Check it is charged, not paired to another device,")
+                print("  and the logo is flashing fast. Then run again.")
+                raise
+            print("  still looking... ({0} s)".format(sw.time() // 1000))
+            wait(500)
+
+
+controller = connect_controller()
+
+
+def reconnect_controller(max_ms=60000):
+    """The controller dropped: stop the robot and reconnect instead of crashing."""
+    r.stop_drive()
+    left_attachement.stop()
+    print("Xbox controller disconnected - reconnecting (press its pair button if needed)...")
+    sw = StopWatch()
+    while True:
+        try:
+            controller.connect()
+            print("Xbox controller reconnected")
+            return
+        except OSError:
+            if sw.time() > max_ms:
+                print("Could not reconnect the Xbox controller.")
+                raise
+            wait(500)
+
+
+def controller_pressed():
+    try:
+        return controller.buttons.pressed()
+    except OSError:
+        reconnect_controller()
+        return controller.buttons.pressed()
+
+
+def controller_dpad():
+    try:
+        return controller.dpad()
+    except OSError:
+        reconnect_controller()
+        return controller.dpad()
 
 WHEEL_DIAMETER = TIRE_DIAMETER  # mm
 TRACK_WIDTH = AXLE_TRACK  # mm
@@ -34,6 +95,15 @@ RECORD_SAMPLE_MS = 10
 ATTACHMENT_SPEED = 120  # deg/s for smooth, moderate attachment movement
 ACTION_SETTLE_MS = 100
 
+# Speed levels, cycled with the X button: (drive mm/s, turn deg/s).
+# Level 2 (index 1) is the normal speed and is used at startup.
+SPEED_LEVELS = [
+    (60, 22),                # 1 Slow
+    (DRIVE_SPEED, TURN_RATE),  # 2 Normal
+    (250, 60),               # 3 Fast (turns capped at 60 deg/s: 90 made the wheels slip)
+]
+speed_level = 1  # index into SPEED_LEVELS
+
 # Movement recording is kept in memory for the current program run.
 recording = []
 is_recording = False
@@ -41,6 +111,7 @@ is_replaying = False
 recording_sample = None
 recording_left_start = 0
 recording_right_start = 0
+recording_heading_start = 0
 watch = StopWatch()
 
 # Names of the dpad directions, for debug printing.
@@ -69,14 +140,67 @@ def apply_direction(direction):
         r.stop_drive()
 
 
-def append_recording_segment(sample, duration_ms, left_start, right_start):
+def append_recording_segment(sample, duration_ms, left_start, right_start, heading_start):
     if duration_ms > 0:
         recording.append((
             sample,
             duration_ms,
             left.angle() - left_start,
             right.angle() - right_start,
+            r.hub.imu.heading() - heading_start,
         ))
+
+
+def recording_steps():
+    """Turn raw recording segments into replay steps.
+
+    Each step is [direction, attachment_direction, duration_ms,
+    distance_mm, turn_deg, speed_level, heading_start, heading_end].
+
+    heading_start / heading_end are the gyro heading at the start and end
+    of the step, measured from where the recording started. Replay aims at
+    these absolute headings, so a small error in one turn does not carry
+    into every move after it.
+
+    - Motion measured during a "stop" segment is the robot still rolling
+      (coasting) after the D-pad was released, so it is added back to the
+      move before it. Otherwise replay comes up short on every move.
+    - Turns use the gyro heading change, which is more accurate than
+      estimating the angle from the wheel encoders.
+    """
+    steps = []
+    for sample, duration_ms, left_delta, right_delta, heading_delta in recording:
+        level = sample // 24
+        direction = sample % 24 % 8
+        attachment_direction = sample % 24 // 8 - 1
+        distance_mm = (
+            (left_delta + right_delta) / 2 / 360
+            * umath.pi * WHEEL_DIAMETER
+        )
+        if direction == 0 and steps and steps[-1][0] != 0:
+            steps[-1][3] += distance_mm
+            steps[-1][4] += heading_delta
+            distance_mm = 0
+            heading_delta = 0
+        steps.append([direction, attachment_direction, duration_ms,
+                      distance_mm, heading_delta, level])
+    # Add up the heading changes to get each step's absolute heading.
+    heading = 0.0
+    for step in steps:
+        step.append(heading)       # heading_start
+        heading += step[4]
+        step.append(heading)       # heading_end
+    return steps
+
+
+async def face_heading(target):
+    """Turn in place (if needed) until the gyro reads the target heading."""
+    error = target - r.hub.imu.heading()
+    if abs(error) >= 0.5:
+        drivebase.reset(0, r.hub.imu.heading())
+        drivebase.turn(error, wait=False)
+        while not drivebase.done():
+            await wait(10)
 
 
 def print_recording_code():
@@ -87,42 +211,57 @@ def print_recording_code():
     print("----- RECORDED MISSION CODE -----")
     print("# Paste this into recorded_mission.py or a mission file")
     print("from pybricks.tools import wait")
-    print("ACTION_SETTLE_MS = {0}".format(ACTION_SETTLE_MS))
+    print("from robot import robot")
+    print("")
+    print("ATTACHMENT_SPEED = {0}".format(ATTACHMENT_SPEED))
+    # Build the list text by hand: MicroPython can't round() whole numbers
+    # to decimal places (NotImplementedError).
+    print("SPEED_LEVELS = [" + ", ".join(
+        "({0:.1f}, {1})".format(s, tr) for s, tr in SPEED_LEVELS) + "]")
+    print("")
+    print("")
+    print("def face(r, target):")
+    print("    # Turn until the gyro reads the target heading.")
+    print("    error = target - r.hub.imu.heading()")
+    print("    if abs(error) >= 0.5:")
+    print("        r.robot.reset(0, r.hub.imu.heading())")
+    print("        r.robot.turn(error)")
+    print("    r.robot.reset(0, r.hub.imu.heading())")
+    print("")
     print("")
     print("def recorded_mission(r: robot):")
     print("    drivebase = r.robot")
     print("    left_attachement = r.lam")
-    print("")
-    for sample, duration_ms, left_delta, right_delta in recording:
-        direction = sample % 8
-        attachment_direction = sample // 8 - 1
-        distance_mm = (
-            (left_delta + right_delta) / 2 / 360
-            * umath.pi * WHEEL_DIAMETER
-        )
-        turn_angle = (
-            (left_delta - right_delta) * WHEEL_DIAMETER
-            / (2 * TRACK_WIDTH)
-        )
+    print("    start = r.hub.imu.heading()  # headings below are measured from here")
+    last_level = None
+    last_face = None  # skip repeating the same face() target twice in a row
+    for (direction, attachment_direction, duration_ms, distance_mm, turn_deg, level,
+         heading_start, heading_end) in recording_steps():
+        if direction in (1, 3, 5, 7) and level != last_level:
+            print("    drivebase.settings(straight_speed=SPEED_LEVELS[{0}][0], turn_rate=SPEED_LEVELS[{0}][1])".format(level))
+            last_level = level
+        if attachment_direction:
+            print("    left_attachement.run_time({0}ATTACHMENT_SPEED, {1}, wait=False)".format(
+                "-" if attachment_direction < 0 else "", duration_ms))
 
-        if direction == 1:
+        if direction in (1, 5):
+            target = "{0:.1f}".format(heading_start)
+            if target != last_face:
+                print("    face(r, start + {0})".format(target))
+                last_face = target
             print("    drivebase.straight({0:.1f})".format(distance_mm))
-        elif direction == 3:
-            print("    drivebase.turn({0:.1f})".format(turn_angle))
-        elif direction == 5:
-            print("    drivebase.straight({0:.1f})".format(distance_mm))
-        elif direction == 7:
-            print("    drivebase.turn({0:.1f})".format(turn_angle))
-        else:
+        elif direction in (3, 7):
+            last_face = "{0:.1f}".format(heading_end)
+            print("    face(r, start + {0})".format(last_face))
+        elif not attachment_direction:
+            # Keep the pause, same length as in the recording.
             print("    drivebase.stop()")
+            print("    wait({0})".format(duration_ms))
+            continue
 
-        if attachment_direction == 1:
-            print("    left_attachement.run_time(ATTACHMENT_SPEED, {0})".format(duration_ms))
-        elif attachment_direction == -1:
-            print("    left_attachement.run_time(-ATTACHMENT_SPEED, {0})".format(duration_ms))
-        else:
-            print("    left_attachement.stop()")
-        print("    wait(ACTION_SETTLE_MS)")
+        if attachment_direction:
+            print("    while not left_attachement.done():")
+            print("        wait(10)")
 
     print("    drivebase.stop()")
     print("    left_attachement.stop()")
@@ -138,29 +277,33 @@ async def replay_recording():
 
     print("Replaying movement recording")
     is_replaying = True
+    saved_settings = drivebase.settings()
     try:
-        drivebase.settings(straight_speed=DRIVE_SPEED, turn_rate=TURN_RATE)
-        for sample, duration_ms, left_delta, right_delta in recording:
-            direction = sample % 8
-            attachment_direction = sample // 8 - 1
+        # Each move replays at the speed it was recorded at (X button level),
+        # so missions don't run faster than the robot was driven.
+        # Headings are measured from where the replay starts, so put the
+        # robot at the same start spot and direction as the recording.
+        start_heading = r.hub.imu.heading()
+        for (direction, attachment_direction, duration_ms, distance_mm, turn_deg, level,
+             heading_start, heading_end) in recording_steps():
+            moving = direction in (1, 3, 5, 7)
 
-            distance_mm = (
-                (left_delta + right_delta) / 2 / 360
-                * umath.pi * WHEEL_DIAMETER
-            )
-            turn_angle = (
-                (left_delta - right_delta) * WHEEL_DIAMETER
-                / (2 * TRACK_WIDTH)
-            )
             watch.reset()
-            if direction == 1:
+            if moving:
+                drivebase.settings(straight_speed=SPEED_LEVELS[level][0],
+                                   turn_rate=SPEED_LEVELS[level][1])
+                if direction in (1, 5):
+                    # Point the way the robot pointed when this straight was
+                    # recorded, so earlier turn errors don't bend the path.
+                    await face_heading(start_heading + heading_start)
+                    watch.reset()
+                # Start each move from where the robot really is.
+                drivebase.reset(0, r.hub.imu.heading())
+            if direction in (1, 5):
                 drivebase.straight(distance_mm, wait=False)
-            elif direction == 3:
-                drivebase.turn(turn_angle, wait=False)
-            elif direction == 5:
-                drivebase.straight(distance_mm, wait=False)
-            elif direction == 7:
-                drivebase.turn(turn_angle, wait=False)
+            elif direction in (3, 7):
+                # Turn to the recorded absolute heading (not a relative amount).
+                drivebase.turn(start_heading + heading_end - r.hub.imu.heading(), wait=False)
             else:
                 r.stop_drive()
 
@@ -169,7 +312,9 @@ async def replay_recording():
             else:
                 left_attachement.stop()
 
-            while watch.time() < duration_ms or not drivebase.done():
+            # Same timing as the recording: each step (including pauses)
+            # lasts at least as long as it did while recording.
+            while not drivebase.done() or watch.time() < duration_ms:
                 await wait(10)
             left_attachement.stop()
         print("Replay complete")
@@ -177,10 +322,13 @@ async def replay_recording():
         is_replaying = False
         r.stop_drive()
         left_attachement.stop()
+        # Restore robot.py's normal speed/acceleration settings.
+        drivebase.settings(*saved_settings)
 
 async def main1():
     global is_recording, recording_sample
-    global recording_left_start, recording_right_start
+    global recording_left_start, recording_right_start, recording_heading_start
+    global speed_level
 
     print_counter = 0
     active_direction = 0
@@ -189,10 +337,22 @@ async def main1():
     last_drive_value = None
     previous_y_pressed = False
     previous_a_pressed = False
+    previous_x_pressed = False
+    r.hub.display.char(str(speed_level + 1))
+    print("Speed level {0} (press X to change)".format(speed_level + 1))
     while True:
-        pressed = controller.buttons.pressed()
+        pressed = controller_pressed()
         y_pressed = Button.Y in pressed
         a_pressed = Button.A in pressed
+        x_pressed = Button.X in pressed
+
+        # X cycles the speed: 1 Slow -> 2 Normal -> 3 Fast -> 1 ...
+        if x_pressed and not previous_x_pressed and not is_replaying:
+            speed_level = (speed_level + 1) % len(SPEED_LEVELS)
+            r.hub.display.char(str(speed_level + 1))
+            print("Speed level {0}: drive {1:.0f} mm/s, turn {2} deg/s".format(
+                speed_level + 1, SPEED_LEVELS[speed_level][0], SPEED_LEVELS[speed_level][1]))
+        previous_x_pressed = x_pressed
 
         if y_pressed and not previous_y_pressed:
             if not is_recording:
@@ -211,6 +371,7 @@ async def main1():
                             elapsed,
                             recording_left_start,
                             recording_right_start,
+                            recording_heading_start,
                         )
                     recording_sample = None
                 print("Recording stopped: {0} actions".format(len(recording)))
@@ -232,7 +393,7 @@ async def main1():
         # Only Forward (1), Right (3), Reverse (5), and Left (7) drive
         # the robot. Any other dpad tap (the diagonals) is ignored
         # entirely, as if the dpad were untouched.
-        direction = controller.dpad()
+        direction = controller_dpad()
         if direction not in (1, 3, 5, 7):
             direction = 0
         if is_recording:
@@ -241,11 +402,14 @@ async def main1():
                 attachment_direction = 1
             elif Button.LB in pressed:
                 attachment_direction = -1
-            sample = direction + 8 * (attachment_direction + 1)
+            # Encode direction, attachment and speed level in one number, so a
+            # change in any of them starts a new recorded step.
+            sample = direction + 8 * (attachment_direction + 1) + 24 * speed_level
             if recording_sample is None:
                 recording_sample = sample
                 recording_left_start = left.angle()
                 recording_right_start = right.angle()
+                recording_heading_start = r.hub.imu.heading()
                 watch.reset()
             elif sample != recording_sample:
                 elapsed = watch.time()
@@ -254,10 +418,12 @@ async def main1():
                     elapsed,
                     recording_left_start,
                     recording_right_start,
+                    recording_heading_start,
                 )
                 recording_sample = sample
                 recording_left_start = left.angle()
                 recording_right_start = right.angle()
+                recording_heading_start = r.hub.imu.heading()
                 watch.reset()
         # The dpad direction selects which way we drive. Releasing the
         # dpad (direction 0) does not reset the distance, so inching
@@ -300,21 +466,22 @@ async def main1():
                     if drive_value != last_drive_value:
                         last_drive_value = drive_value
                         print("Distance driven: {0:.1f} cm".format(drive_value))
-        # Use the direction pad for driving.
+        # Use the direction pad for driving, at the selected speed level.
+        drive_speed, turn_rate = SPEED_LEVELS[speed_level]
         if direction == 1:
             # Forward. Use the drive base so the gyro keeps us
             # driving straight.
-            r.drive_straight(DRIVE_SPEED)
+            r.drive_straight(drive_speed)
         elif direction == 3:
             # Right
-            r.drive_turn(TURN_RATE)
+            r.drive_turn(turn_rate)
         elif direction == 5:
             # Reverse. Use the drive base so the gyro keeps us
             # driving straight.
-            r.drive_straight(-DRIVE_SPEED)
+            r.drive_straight(-drive_speed)
         elif direction == 7:
             # Left
-            r.drive_turn(-TURN_RATE)
+            r.drive_turn(-turn_rate)
         else:
             # Nothing (or an ignored diagonal tap), so stop.
             r.stop_drive()
@@ -324,7 +491,7 @@ async def attachment_stepper(motor, label, positive_button, negative_button):
         if is_replaying:
             await wait(10)
             continue
-        pressed = controller.buttons.pressed()
+        pressed = controller_pressed()
         if positive_button in pressed:
             motor.run(ATTACHMENT_SPEED)
         elif negative_button in pressed:
