@@ -147,7 +147,7 @@ Create .vscode/launch.json:
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run on BR-01",
+      "name": "Run on lucky-chicken-1",
       "type": "debugpy",
       "request": "launch",
       "module": "pybricksdev",
@@ -155,12 +155,25 @@ Create .vscode/launch.json:
         "run",
         "ble",
         "--name",
-        "BR-01",
+        "lucky-chicken-1",
+        "${workspaceFolder}/xbox_controller.py"
+      ]
+    },
+    {
+      "name": "Run on lucky-chicken-2",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pybricksdev",
+      "args": [
+        "run",
+        "ble",
+        "--name",
+        "lucky-chicken-2",
         "${workspaceFolder}/main.py"
       ]
     },
     {
-      "name": "Run on BR-02",
+      "name": "Run on lucky-chicken-3",
       "type": "debugpy",
       "request": "launch",
       "module": "pybricksdev",
@@ -168,12 +181,12 @@ Create .vscode/launch.json:
         "run",
         "ble",
         "--name",
-        "BR-02",
+        "lucky-chicken-3",
         "${workspaceFolder}/main.py"
       ]
     },
     {
-      "name": "Run on BR-03",
+      "name": "Run on lucky-chicken-4",
       "type": "debugpy",
       "request": "launch",
       "module": "pybricksdev",
@@ -181,7 +194,7 @@ Create .vscode/launch.json:
         "run",
         "ble",
         "--name",
-        "BR-03",
+        "lucky-chicken-4",
         "${workspaceFolder}/main.py"
       ]
     }
@@ -206,12 +219,13 @@ pybricksdev devices ble
 
 You should see output like:
 
-BR-01
-BR-02
-BR-03
+lucky-chicken-1
+lucky-chicken-2
+lucky-chicken-3
+lucky-chicken-4
 
 
-If you don’t:
+If you don't:
 
 Confirm hub firmware is Pybricks
 
@@ -226,7 +240,7 @@ mission1.py
 
 Open Run and Debug panel
 
-Select Run on BR-01
+Select Run on lucky-chicken-1
 
 Press F5
 
