@@ -105,9 +105,12 @@ if (-not $KnownTeams.ContainsKey($TeamNumber)) {
     $newName = Read-Host "Team display name (optional; press Enter to skip)"
 
     Write-Host ""
-    $defaultGitHubUser = "fssfll$TeamNumber"
-    $newGitHubUser = Read-Host "GitHub username (press Enter for '$defaultGitHubUser')"
-    if (-not $newGitHubUser) { $newGitHubUser = $defaultGitHubUser }
+    Write-Host "Enter YOUR unique GitHub username. Each team member has their own — there is no team-wide standard." -ForegroundColor Cyan
+    $newGitHubUser = Read-Host "GitHub username"
+    while (-not $newGitHubUser) {
+        Write-Warning "GitHub username is required."
+        $newGitHubUser = Read-Host "GitHub username"
+    }
 
     # Stash into the same structure used for known teams
     $KnownTeams[$TeamNumber] = @{
@@ -121,16 +124,22 @@ if (-not $KnownTeams.ContainsKey($TeamNumber)) {
 $teamData    = $KnownTeams[$TeamNumber]
 $TeamName    = if ($teamData.Name) { $teamData.Name } else { "ECO Engineers Team $TeamNumber" }
 $TeamEmail   = $teamData.Email
-$GitHubUser  = if ($teamData.GitHubUser) { $teamData.GitHubUser } else { "fssfll$TeamNumber" }
+$GitHubUser  = if ($teamData.GitHubUser) {
+    $teamData.GitHubUser
+} else {
+    $u = Read-Host "Enter YOUR unique GitHub username"
+    while (-not $u) { Write-Warning "GitHub username is required."; $u = Read-Host "GitHub username" }
+    $u
+}
 
 $GitUserName  = "ECO Engineers FLL Team $TeamNumber"  # Shows up in commit history
 $GitUserEmail = $TeamEmail                              # Per-team email (gmail or outlook)
-$ForkUrl      = "https://github.com/$GitHubUser/spike_basecode.git"
+$ForkUrl      = "https://github.com/itzkumaran/shrewsbury-fll-ecoengineers.git"
 $UpstreamUrl  = "https://github.com/stevenerat/spike_basecode.git"
 
 # Local paths
 $ReposRoot     = "$env:USERPROFILE\repos"
-$RepoPath      = "$ReposRoot\spike_basecode"
+$RepoPath      = "$ReposRoot\shrewsbury-fll-ecoengineers"
 $DesktopPath   = [Environment]::GetFolderPath("Desktop")
 $GitConfigPath = "$env:USERPROFILE\.gitconfig"
 
@@ -529,10 +538,8 @@ EVERYDAY WORKFLOW (use GitHub Desktop):
     4. Click "Commit to main"
     5. Click "Push origin" in the top bar
 
-  Pull chapter updates (when Steve announces changes):
-    1. Go to https://github.com/$GitHubUser/spike_basecode
-    2. If GitHub shows "This branch is N commits behind", click "Sync fork"
-    3. In GitHub Desktop, click "Fetch origin" then "Pull origin"
+  Pull chapter updates (when the maintainer announces changes):
+    1. In GitHub Desktop, click "Fetch origin" then "Pull origin"
 
   Run code on the SPIKE hub:
     Open Git Bash (or the VS Code terminal) in the repo folder, then run:
@@ -542,7 +549,7 @@ QUESTIONS?
   Talk to your coach, or contact Steve.
 
 YOUR TEAM'S GITHUB:
-  https://github.com/$GitHubUser/spike_basecode
+  https://github.com/itzkumaran/shrewsbury-fll-ecoengineers
 
 CHAPTER UPSTREAM (where updates come from):
   $UpstreamUrl

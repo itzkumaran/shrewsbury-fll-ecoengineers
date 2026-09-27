@@ -32,7 +32,7 @@
 
     Run from anywhere inside the repo (the script cd's to the repo root
     automatically and restores your previous location on exit):
-        cd ~\repos\spike_basecode
+        cd ~\repos\shrewsbury-fll-ecoengineers
         .\scripts\sync-from-upstream.ps1
 #>
 

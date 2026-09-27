@@ -3,7 +3,7 @@ Audience: Coaches, mentors, and advanced students setting up Pybricks developmen
 
 
 Target machine: macOS
-Repo: /Users/<username>/Your/Path/To/spike_basecode
+Repo: /Users/<username>/Your/Path/To/shrewsbury-fll-ecoengineers
 Python: 3.13.2
 VS Code: 1.108.0
 Hub firmware: Pybricks already installed and working via WebIDE
@@ -42,7 +42,7 @@ Open VS Code
 Command Palette → Shell Command: Install 'code' command in PATH
 
 1. Go to the existing repo
-cd /Users/<username>/Your/Path/To/spike_basecode
+cd /Users/<username>/Your/Path/To/shrewsbury-fll-ecoengineers
 
 
 Confirm this is a git repo:
@@ -246,7 +246,7 @@ If motors move: ✅ success.
 
 Once per session (Terminal):
 
-cd spike_basecode
+cd shrewsbury-fll-ecoengineers
 source .venv/bin/activate
 code .
 
