@@ -887,7 +887,7 @@ body.sidebar-collapsed #toggle-btn {
           <h1 class="slide-title">Git is the <em>tool.</em> GitHub is the <em>place.</em></h1>
           <div class="slide-body">
             <p><strong>Git</strong> is software that runs on your laptop. It tracks every change you make to your code files. It works entirely offline — no wifi required. You get the full benefits of version tracking during every practice, even in the school library.</p>
-            <p><strong>GitHub</strong> is a website that stores a shared copy of your team's code in the cloud. When a coach pushes your commits to GitHub after practice, your work is safe, backed up, and accessible to the whole team.</p>
+            <p><strong>GitHub</strong> is a website that stores a shared copy of your team's code in the cloud. When you push your commits to your branch on GitHub, your work is safe, backed up, and accessible to the whole team — and the coach can review and merge it into <code style="font-family:var(--font-mono);font-size:12px;background:#f5f5f5;padding:1px 4px;border-radius:3px;">main</code>.</p>
             <div class="callout">Git is the engine. GitHub is the garage where the team's car is parked.</div>
           </div>
         </div>
@@ -956,11 +956,11 @@ body.sidebar-collapsed #toggle-btn {
             </div>
             <div style="display:flex;gap:14px;margin-bottom:16px;align-items:flex-start;">
               <div style="min-width:110px;font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--red);padding-top:2px;">Branch</div>
-              <div style="font-size:13px;line-height:1.6;color:var(--gray-dark);">A separate line of work. The team uses one branch called <strong>main</strong> — that's all you need for now.</div>
+              <div style="font-size:13px;line-height:1.6;color:var(--gray-dark);">A separate line of work. Each team member has their own branch (named after themselves — e.g. <strong>maya</strong>, <strong>jonah</strong>) where they commit and push. The coach merges finished work into the shared <strong>main</strong> branch.</div>
             </div>
             <div style="display:flex;gap:14px;margin-bottom:16px;align-items:flex-start;">
               <div style="min-width:110px;font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--red);padding-top:2px;">Merge Conflict</div>
-              <div style="font-size:13px;line-height:1.6;color:var(--gray-dark);">When two people edit the same part of the same file, git can't decide which version wins. The coach resolves it. Staying on your assigned mission file keeps this rare.</div>
+              <div style="font-size:13px;line-height:1.6;color:var(--gray-dark);">When two people edit the same part of the same file, git can't decide which version wins. The coach resolves it during the merge step. Staying on your assigned mission file keeps this rare.</div>
             </div>
             <div style="display:flex;gap:14px;align-items:flex-start;">
               <div style="min-width:110px;font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--red);padding-top:2px;">Tag</div>
@@ -976,7 +976,7 @@ body.sidebar-collapsed #toggle-btn {
       <div class="slide-inner">
         <div class="slide-content">
           <div class="slide-section-label">Section 04 — Student Workflow</div>
-          <h1 class="slide-title">At practice, students do <em>two things.</em></h1>
+          <h1 class="slide-title">At practice, students do <em>three things.</em></h1>
           <div class="slide-body">
             <p>Your team laptop arrives already configured. The repository is cloned, GitHub Desktop is set up, and your mission files are waiting. There is nothing to install or set up.</p>
             <p><strong>Your files live in one place on the laptop.</strong> When you open VS Code, you're editing those exact files directly — no copies, no confusion about which version is which. GitHub Desktop watches the same folder and notices your changes automatically.</p>
@@ -984,15 +984,15 @@ body.sidebar-collapsed #toggle-btn {
           <div class="step-list">
             <div class="step-item">
               <div class="step-num">01</div>
-              <div class="step-text"><strong>Edit</strong>Open your assigned mission file and make your changes. Work freely — nothing you do here affects your teammates' laptops yet.</div>
+              <div class="step-text"><strong>Edit on your branch</strong>The first time, create a branch named after you (e.g. <code style="font-family:var(--font-mono);font-size:11px;background:#f5f5f5;padding:1px 4px;border-radius:3px;">maya</code>) in GitHub Desktop → Branch menu → New branch. After that, just switch to it. Open your mission file and make your changes.</div>
             </div>
             <div class="step-item">
               <div class="step-num">02</div>
               <div class="step-text"><strong>Commit</strong>When you reach a good stopping point, commit your work. Write a message that explains what you changed and why. This creates a permanent snapshot.</div>
             </div>
             <div class="step-item">
-              <div class="step-num">—</div>
-              <div class="step-text"><strong>That's it for practice.</strong>Push to GitHub happens after practice, at home. That's the coach's job.</div>
+              <div class="step-num">03</div>
+              <div class="step-text"><strong>Push to your branch</strong>When you have wifi, click <strong>Push origin</strong> in GitHub Desktop. Your commits go up to <em>your own branch</em> on GitHub — never directly to <code style="font-family:var(--font-mono);font-size:11px;background:#f5f5f5;padding:1px 4px;border-radius:3px;">main</code>. The coach reviews and merges when the code is ready.</div>
             </div>
           </div>
         </div>
@@ -1110,22 +1110,22 @@ body.sidebar-collapsed #toggle-btn {
       <div class="slide-inner">
         <div class="slide-content">
           <div class="slide-section-label">Section 05 — Coach Workflow</div>
-          <h1 class="slide-title">Coaches handle <em>Push and Pull,</em> at home.</h1>
+          <h1 class="slide-title">Coaches <em>review and merge</em> student branches.</h1>
           <div class="slide-body">
-            <p>The school library doesn't have wifi for team laptops. That's fine — Git works completely offline. Students commit throughout practice. After practice, at home, the coach connects and pushes everyone's commits to GitHub.</p>
+            <p>Students push commits to their own branches on GitHub as they work. When code is ready to become part of the shared team codebase, the coach reviews it and merges the student's branch into <code style="font-family:var(--font-mono);font-size:14px;background:#f5f5f5;padding:1px 5px;border-radius:3px;">main</code>. This keeps <code style="font-family:var(--font-mono);font-size:14px;background:#f5f5f5;padding:1px 5px;border-radius:3px;">main</code> clean — every commit on <code style="font-family:var(--font-mono);font-size:14px;background:#f5f5f5;padding:1px 5px;border-radius:3px;">main</code> is coach-approved.</p>
           </div>
           <div class="step-list">
             <div class="step-item">
               <div class="step-num">01</div>
-              <div class="step-text"><strong>Push — after practice, at home</strong>Open GitHub Desktop on each laptop, connect to wifi, and push. All the commits made during practice go to GitHub.</div>
+              <div class="step-text"><strong>Fetch</strong>In GitHub Desktop, click <strong>Fetch origin</strong> to pull down every student's latest branch commits.</div>
             </div>
             <div class="step-item">
               <div class="step-num">02</div>
-              <div class="step-text"><strong>Pull — before next practice</strong>Before the next session, pull on every laptop so each one has the full history of what every teammate did.</div>
+              <div class="step-text"><strong>Review</strong>Switch to each student's branch and check the changes — either in GitHub Desktop's Changes tab or via the branch's page on github.com.</div>
             </div>
             <div class="step-item">
               <div class="step-num">03</div>
-              <div class="step-text"><strong>Merge if needed</strong>If two students edited overlapping code, GitHub Desktop will flag it. The coach resolves it. With good file-per-mission discipline, this is rare.</div>
+              <div class="step-text"><strong>Merge into main</strong>Switch to <code style="font-family:var(--font-mono);font-size:12px;background:#f5f5f5;padding:1px 4px;border-radius:3px;">main</code> → Branch menu → <strong>Merge into current branch</strong> → pick the student's branch. If GitHub Desktop flags conflicts, resolve them there. Then <strong>Push origin</strong> to publish the merged <code style="font-family:var(--font-mono);font-size:12px;background:#f5f5f5;padding:1px 4px;border-radius:3px;">main</code>.</div>
             </div>
           </div>
         </div>
@@ -1237,9 +1237,9 @@ body.sidebar-collapsed #toggle-btn {
           <div class="slide-section-label">Section 06 — The FLL Scenario</div>
           <h1 class="slide-title">Practice without <em>waiting in line.</em></h1>
           <div class="slide-body">
-            <p><strong>During practice:</strong> Maya opens <code style="font-family:var(--font-mono);font-size:13px;background:#f5f5f5;padding:1px 5px;border-radius:3px;">mission_two.py</code> and refines her arm motor timing. Jonah opens <code style="font-family:var(--font-mono);font-size:13px;background:#f5f5f5;padding:1px 5px;border-radius:3px;">mission_four.py</code> and adjusts his gyro turn. Both commit when they hit good stopping points. No wifi needed. No waiting.</p>
-            <p><strong>That evening:</strong> Coach connects both laptops to wifi at home and pushes to GitHub. Both students' commits are now safely in the cloud.</p>
-            <p><strong>Before next practice:</strong> Coach pulls on every laptop. Everyone starts with the complete, merged history. No zip file. No thumb drive. No lost work.</p>
+            <p><strong>During practice:</strong> Maya switches to her <strong>maya</strong> branch and refines her arm motor timing in <code style="font-family:var(--font-mono);font-size:13px;background:#f5f5f5;padding:1px 5px;border-radius:3px;">mission_two.py</code>. Jonah switches to his <strong>jonah</strong> branch and adjusts his gyro turn in <code style="font-family:var(--font-mono);font-size:13px;background:#f5f5f5;padding:1px 5px;border-radius:3px;">mission_four.py</code>. Both commit — and push their own branches when they have wifi — no waiting.</p>
+            <p><strong>That evening:</strong> The coach fetches all the student branches, reviews Maya's and Jonah's changes, and merges each branch into <code style="font-family:var(--font-mono);font-size:13px;background:#f5f5f5;padding:1px 5px;border-radius:3px;">main</code>. Now the approved work is on the shared team branch.</p>
+            <p><strong>Before next practice:</strong> Every student pulls the latest <code style="font-family:var(--font-mono);font-size:13px;background:#f5f5f5;padding:1px 5px;border-radius:3px;">main</code> into their own branch (or starts a fresh branch from <code style="font-family:var(--font-mono);font-size:13px;background:#f5f5f5;padding:1px 5px;border-radius:3px;">main</code>). Everyone starts with the complete, merged history. No zip file. No thumb drive. No lost work.</p>
           </div>
         </div>
         <div class="slide-visual">
@@ -1319,9 +1319,9 @@ body.sidebar-collapsed #toggle-btn {
           <div class="slide-section-label">Section 07 — Undoing a Commit</div>
           <h1 class="slide-title">Made a mistake? <em>You can fix it</em> before it leaves your laptop.</h1>
           <div class="slide-body">
-            <p>If you commit something by accident — wrong file, bad change, incomplete work — you can undo it in GitHub Desktop before the coach pushes. Everything to the left of the push boundary is yours to fix.</p>
+            <p>If you commit something by accident — wrong file, bad change, incomplete work — you can undo it in GitHub Desktop before you push. Anything you haven't pushed yet is yours to fix locally.</p>
             <p><strong>In GitHub Desktop:</strong> right-click the commit in the History tab and choose "Undo." Your files go back to where they were before that commit, and you can start fresh.</p>
-            <div class="callout">Once a commit is pushed to GitHub, the coach handles any reversals. This is another reason push being coach-managed is a safety feature, not a limitation.</div>
+            <div class="callout">Once you push a commit to your branch on GitHub, undoing it is more involved (you'd need to force-push, which coaches usually handle). So — always check GitHub Desktop's Changes tab before you push.</div>
           </div>
         </div>
         <div class="slide-visual">
@@ -1331,7 +1331,7 @@ body.sidebar-collapsed #toggle-btn {
               <!-- Step 1: You committed something wrong -->
               <rect x="20" y="20" width="300" height="60" rx="10" fill="#fff5f5" stroke="#ED1C24" stroke-width="1.5"/>
               <text x="40" y="44" font-size="12" fill="#ED1C24" font-weight="600">Oops! Bad commit.</text>
-              <text x="40" y="62" font-size="11" fill="#666">You committed by mistake before coach pushed.</text>
+              <text x="40" y="62" font-size="11" fill="#666">You committed by mistake before you pushed.</text>
 
               <!-- Down arrow -->
               <line x1="170" y1="82" x2="170" y2="106" stroke="#ccc" stroke-width="2" marker-end="url(#arr-dn7)"/>
@@ -1361,7 +1361,7 @@ body.sidebar-collapsed #toggle-btn {
 
             <!-- Safety note below diagram -->
             <div style="margin-top:12px; padding:10px 14px; background:#f9f9f9; border-left:3px solid #ED1C24; border-radius:0 6px 6px 0; font-size:12px; color:#666; line-height:1.5;">
-              <strong style="color:#1a1a1a;">Only works before Push.</strong> Once the coach pushes to GitHub, the coach handles any fixes. That's why Push being the coach's job is a safety net.
+              <strong style="color:#1a1a1a;">Only works before Push.</strong> Once you push to your branch, undoing means force-pushing — ask the coach for help. Check your commit before pushing.
             </div>
           </div>
         </div>
@@ -1553,7 +1553,7 @@ body.sidebar-collapsed #toggle-btn {
               </div>
               <div class="step-item">
                 <div class="step-num">04</div>
-                <div class="step-text"><strong>Push is the coach's job.</strong>Students commit; coaches push. This protects GitHub from accidental overwrites.</div>
+                <div class="step-text"><strong>Push only to your own branch.</strong>Never push directly to <code style="font-family:var(--font-mono);font-size:11px;background:#f5f5f5;padding:1px 4px;border-radius:3px;">main</code>. Push commits to <em>your</em> branch; the coach merges into <code style="font-family:var(--font-mono);font-size:11px;background:#f5f5f5;padding:1px 4px;border-radius:3px;">main</code> once the work is reviewed.</div>
               </div>
               <div class="step-item">
                 <div class="step-num">05</div>
@@ -1616,7 +1616,7 @@ body.sidebar-collapsed #toggle-btn {
             </div>
             <div class="step-item">
               <div class="step-num" style="font-size:18px;min-width:32px;">04</div>
-              <div class="step-text" style="font-size:15px;"><strong>Click "Commit to main"</strong>That's it. Your work is saved, timestamped, and authored. Coach will push tonight.</div>
+              <div class="step-text" style="font-size:15px;"><strong>Commit and push to your branch</strong>Click <strong>Commit to <em>your-branch</em></strong> (the button label shows your branch name). Then click <strong>Push origin</strong> when you have wifi. Your work is on GitHub, waiting for the coach to review and merge.</div>
             </div>
           </div>
           <div class="callout" style="max-width:520px;margin-top:24px;">You just used professional software version control. The same workflow used by engineers at every major software company in the world.</div>
