@@ -28,7 +28,7 @@
         "ble",
         "--name",
         "lucky-chicken-2",
-        "${workspaceFolder}/main.py"
+        "${workspaceFolder}/mission_one.py"
       ]
     },
     {
