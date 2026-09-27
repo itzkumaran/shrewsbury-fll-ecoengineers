@@ -2,58 +2,54 @@ import umath
 
 from pybricks.tools import wait
 
-from robot import robot, TIRE_DIAMETER
+from robot import TIRE_DIAMETER, robot
 
-# Must match xbox_controller.py's DRIVE_SPEED/TURN_RATE/ATTACHMENT_SPEED so
-# recordings made with the controller replay identically here.
+ACTION_SETTLE_MS = 100
 DRIVE_SPEED = 250 / 360 * umath.pi * TIRE_DIAMETER
-TURN_RATE = 90
-ATTACHMENT_SPEED = 120
+TURN_RATE = 45
 
 
 def recorded_mission(r: robot):
     drivebase = r.robot
     left_attachement = r.lam
 
+    drivebase.settings(straight_speed=DRIVE_SPEED, turn_rate=TURN_RATE)
     drivebase.stop()
     left_attachement.stop()
-    wait(330)
-    drivebase.drive(-DRIVE_SPEED, 0)
-    left_attachement.stop()
-    wait(1770)
-    drivebase.stop()
-    left_attachement.stop()
-    wait(180)
-    drivebase.drive(DRIVE_SPEED, 0)
-    left_attachement.stop()
-    wait(1830)
-    drivebase.stop()
-    left_attachement.stop()
-    wait(150)
-    drivebase.drive(0, -TURN_RATE)
-    left_attachement.stop()
-    wait(1407)
-    drivebase.stop()
-    left_attachement.stop()
-    wait(150)
-    drivebase.drive(0, TURN_RATE)
-    left_attachement.stop()
-    wait(1529)
-    drivebase.stop()
-    left_attachement.stop()
-    wait(180)
-    drivebase.drive(DRIVE_SPEED, 0)
-    left_attachement.stop()
-    wait(1020)
-    drivebase.stop()
-    left_attachement.stop()
-    wait(95)
-    drivebase.stop()
-    left_attachement.run(ATTACHMENT_SPEED)
-    wait(990)
-    drivebase.stop()
-    left_attachement.run(-ATTACHMENT_SPEED)
-    wait(1285)
+    drivebase.straight(-232.6)
+    wait(ACTION_SETTLE_MS)
+    drivebase.turn(66.3)
+    wait(ACTION_SETTLE_MS)
+    drivebase.straight(-462.5)
+    wait(ACTION_SETTLE_MS)
+    drivebase.turn(-35.3)
+    wait(ACTION_SETTLE_MS)
+    drivebase.straight(-149.1)
+    wait(ACTION_SETTLE_MS)
+    drivebase.turn(-31.7)
+    wait(ACTION_SETTLE_MS)
+    drivebase.straight(-193.8)
+    wait(ACTION_SETTLE_MS)
+    drivebase.turn(-30.2)
+    wait(ACTION_SETTLE_MS)
+    drivebase.straight(-260.2)
+    wait(ACTION_SETTLE_MS)
+    drivebase.straight(39.1)
+    wait(ACTION_SETTLE_MS)
+    drivebase.turn(74.5)
+    wait(ACTION_SETTLE_MS)
+    drivebase.turn(-136.6)
+    wait(ACTION_SETTLE_MS)
+    drivebase.straight(-201.8)
+    wait(ACTION_SETTLE_MS)
+    drivebase.turn(-27.6)
+    wait(ACTION_SETTLE_MS)
+    drivebase.straight(-162.2)
+    wait(ACTION_SETTLE_MS)
+    drivebase.turn(-19.6)
+    wait(ACTION_SETTLE_MS)
+    drivebase.straight(-421.7)
+    wait(ACTION_SETTLE_MS)
     drivebase.stop()
     left_attachement.stop()
 

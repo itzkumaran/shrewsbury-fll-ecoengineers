@@ -6,7 +6,7 @@
 # centralizes all necessary imports so that mission files can use robot features 
 # without redundant imports.
 #
-# Author: ECO Engineers
+# Author: Bolton Robotics
 # Initial Date: 2025-03-15
 # Last Modified: 2026-03-12
 # Version: 1.1
@@ -75,23 +75,23 @@ if TYPE_CHECKING:
             self,
             speed: int,
             time: int,
-            then: Stop = ...,
-            wait: bool = ...,
+            then: Stop = Stop.HOLD,
+            wait: bool = True,
         ) -> None: ...
 
         def run_angle(
             self,
             speed: int,
             rotation_angle: int,
-            then: Stop = ...,
-            wait: bool = ...,
+            then: Stop = Stop.HOLD,
+            wait: bool = True,
         ) -> None: ...
 
         def run_until_stalled(
             self,
             speed: int,
-            then: Stop = ...,
-            duty_limit: Optional[int] = ...,
+            then: Stop = Stop.COAST,
+            duty_limit: Optional[int] = None,
         ) -> int: ...
 
         def dc(self, duty: int) -> None: ...
@@ -170,13 +170,9 @@ else:
 TIRE_DIAMETER: int = 56  # mm
 AXLE_TRACK: int = 130  # distance between the wheels, mm
 STRAIGHT_SPEED: int = 300  # mm/sec
-STRAIGHT_ACCEL: int = 100  # mm/sec^2; gentler acceleration reduces wheel slip
-# Small encoder-mode trim counters the gradual left drift.
-FORWARD_STRAIGHT_CORRECTION: float = -1.0  # deg/sec
-# Reverse needs its own trim because wheel load changes direction.
-REVERSE_STRAIGHT_CORRECTION: float = 0.0  # deg/sec
+STRAIGHT_ACCEL: int = 10000  # mm/sec^2; near-instant acceleration/deceleration
 TURN_RATE: int = 45  # deg/sec
-TURN_ACCEL: int = 45  # deg/sec^2
+TURN_ACCEL: int = 10000  # deg/sec^2; near-instant angular acceleration/deceleration
 
 #############################################
 # Define Robot Port Mappings
@@ -187,7 +183,7 @@ TURN_ACCEL: int = 45  # deg/sec^2
 PORT_MAPPING: dict[str, Port] = {
     "ldm": Port.B,  # Left Drive Motor (Required)
     "rdm": Port.F,  # Right Drive Motor (Required)
-    "lam": Port.C,  # Left Attachment Motor (Optional)
+    "lam": Port.A,  # Left Attachment Motor (Optional)
     #"lcs": Port.A,  # Left Color Sensor (Optional)
     #"rcs": Port.B,  # Right Color Sensor (Optional)
 }
@@ -339,7 +335,6 @@ class robot:
             self.robot = DriveBase(
                 self.ldm, self.rdm, TIRE_DIAMETER, AXLE_TRACK,
             )
-            # Encoder control avoids orientation-dependent gyro corrections.
             self.robot.use_gyro(False)
             self.robot.settings(
                 STRAIGHT_SPEED, STRAIGHT_ACCEL,
@@ -401,12 +396,7 @@ class robot:
             self.robot.reset()
             self._straight_drive_active = True
 
-        steering_correction = (
-            FORWARD_STRAIGHT_CORRECTION
-            if speed > 0
-            else REVERSE_STRAIGHT_CORRECTION
-        )
-        self.robot.drive(speed, steering_correction)
+        self.robot.drive(speed, 0)
 
     def stop_drive(self):
         """Stop driving and require a new heading reference next time."""

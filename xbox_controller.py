@@ -1,54 +1,46 @@
 import umath
 
 from pybricks.iodevices import XboxController
-from pybricks.parameters import Button, Direction, Port
-from pybricks.pupdevices import Motor
-from pybricks.robotics import DriveBase
+from pybricks.parameters import Button
 from pybricks.tools import StopWatch, multitask, run_task, wait
 
-# Wheel size, used to convert motor angle to distance driven.
-WHEEL_DIAMETER = 55.5  # mm
+from robot import (
+    AXLE_TRACK,
+    TIRE_DIAMETER,
+    robot,
+)
 
-# Distance between the centers of the left and right wheels, used to
-# convert wheel angle to the angle the robot itself turned during a
-# pivot turn, and by the drive base for gyro-corrected driving.
-TRACK_WIDTH = 80  # mm
-
-# Set up all devices.
-left = Motor(Port.B, Direction.CLOCKWISE)
-right = Motor(Port.F, Direction.COUNTERCLOCKWISE)
-left_attachement = Motor(Port.C, Direction.CLOCKWISE)
+# Initialize robot instance to configure PrimeHub gyro orientation,
+# drive base geometry, and motor directions centrally from robot.py.
+r = robot()
+left = r.ldm
+right = r.rdm
+left_attachement = r.lam
+drivebase = r.robot
 controller = XboxController()
 
-# Treat wherever the attachements happen to be at startup as 0, so
-# their angle is relative to the start of the program rather than
-# whatever the motor's absolute encoder reads.
+WHEEL_DIAMETER = TIRE_DIAMETER  # mm
+TRACK_WIDTH = AXLE_TRACK  # mm
+
+# Treat wherever the attachments happen to be at startup as 0.
 left_attachement.reset_angle(0)
-
-# A high acceleration limit lets the controller apply torque quickly
-# for a step, instead of ramping up gently and possibly not
-# developing enough force to overcome friction within just 5 degrees.
 left_attachement.control.limits(acceleration=1000)
-
-# Used for forward/reverse driving, so the gyro can keep us driving
-# straight. Left/right pivot turns and diagonal turns still drive the
-# left/right motors directly, which automatically cancels the drive
-# base's current maneuver.
-drivebase = DriveBase(left, right, WHEEL_DIAMETER, TRACK_WIDTH)
-drivebase.use_gyro(True)
 
 # Linear speed for forward/reverse that matches the previous 250 deg/s
 # wheel speed used for turning.
 DRIVE_SPEED = 250 / 360 * umath.pi * WHEEL_DIAMETER  # mm/s
-TURN_RATE = 90  # deg/s, limited to make pivot turns smoother
+TURN_RATE = 45  # deg/s, limited to make pivot turns smoother
 RECORD_SAMPLE_MS = 10
 ATTACHMENT_SPEED = 120  # deg/s for smooth, moderate attachment movement
+ACTION_SETTLE_MS = 100
 
 # Movement recording is kept in memory for the current program run.
 recording = []
 is_recording = False
 is_replaying = False
 recording_sample = None
+recording_left_start = 0
+recording_right_start = 0
 watch = StopWatch()
 
 # Names of the dpad directions, for debug printing.
@@ -66,15 +58,25 @@ DIRECTION_NAMES = {
 
 def apply_direction(direction):
     if direction == 1:
-        drivebase.drive(-DRIVE_SPEED, 0)
+        r.drive_straight(-DRIVE_SPEED)
     elif direction == 3:
-        drivebase.drive(0, -TURN_RATE)
+        r.drive_turn(-TURN_RATE)
     elif direction == 5:
-        drivebase.drive(DRIVE_SPEED, 0)
+        r.drive_straight(DRIVE_SPEED)
     elif direction == 7:
-        drivebase.drive(0, TURN_RATE)
+        r.drive_turn(TURN_RATE)
     else:
-        drivebase.stop()
+        r.stop_drive()
+
+
+def append_recording_segment(sample, duration_ms, left_start, right_start):
+    if duration_ms > 0:
+        recording.append((
+            sample,
+            duration_ms,
+            left.angle() - left_start,
+            right.angle() - right_start,
+        ))
 
 
 def print_recording_code():
@@ -84,32 +86,43 @@ def print_recording_code():
 
     print("----- RECORDED MISSION CODE -----")
     print("# Paste this into recorded_mission.py or a mission file")
+    print("from pybricks.tools import wait")
+    print("ACTION_SETTLE_MS = {0}".format(ACTION_SETTLE_MS))
+    print("")
     print("def recorded_mission(r: robot):")
     print("    drivebase = r.robot")
     print("    left_attachement = r.lam")
     print("")
-    for sample, duration_ms in recording:
+    for sample, duration_ms, left_delta, right_delta in recording:
         direction = sample % 8
         attachment_direction = sample // 8 - 1
+        distance_mm = (
+            (left_delta + right_delta) / 2 / 360
+            * umath.pi * WHEEL_DIAMETER
+        )
+        turn_angle = (
+            (left_delta - right_delta) * WHEEL_DIAMETER
+            / (2 * TRACK_WIDTH)
+        )
 
         if direction == 1:
-            print("    drivebase.drive(-DRIVE_SPEED, 0)")
+            print("    drivebase.straight({0:.1f})".format(distance_mm))
         elif direction == 3:
-            print("    drivebase.drive(0, -TURN_RATE)")
+            print("    drivebase.turn({0:.1f})".format(turn_angle))
         elif direction == 5:
-            print("    drivebase.drive(DRIVE_SPEED, 0)")
+            print("    drivebase.straight({0:.1f})".format(distance_mm))
         elif direction == 7:
-            print("    drivebase.drive(0, TURN_RATE)")
+            print("    drivebase.turn({0:.1f})".format(turn_angle))
         else:
             print("    drivebase.stop()")
 
         if attachment_direction == 1:
-            print("    left_attachement.run(ATTACHMENT_SPEED)")
+            print("    left_attachement.run_time(ATTACHMENT_SPEED, {0})".format(duration_ms))
         elif attachment_direction == -1:
-            print("    left_attachement.run(-ATTACHMENT_SPEED)")
+            print("    left_attachement.run_time(-ATTACHMENT_SPEED, {0})".format(duration_ms))
         else:
             print("    left_attachement.stop()")
-        print("    wait({0})".format(duration_ms))
+        print("    wait(ACTION_SETTLE_MS)")
 
     print("    drivebase.stop()")
     print("    left_attachement.stop()")
@@ -126,30 +139,49 @@ async def replay_recording():
     print("Replaying movement recording")
     is_replaying = True
     try:
-        for sample, duration_ms in recording:
+        drivebase.settings(straight_speed=DRIVE_SPEED, turn_rate=TURN_RATE)
+        for sample, duration_ms, left_delta, right_delta in recording:
             direction = sample % 8
             attachment_direction = sample // 8 - 1
 
-            apply_direction(direction)
+            distance_mm = (
+                (left_delta + right_delta) / 2 / 360
+                * umath.pi * WHEEL_DIAMETER
+            )
+            turn_angle = (
+                (left_delta - right_delta) * WHEEL_DIAMETER
+                / (2 * TRACK_WIDTH)
+            )
+            watch.reset()
+            if direction == 1:
+                drivebase.straight(distance_mm, wait=False)
+            elif direction == 3:
+                drivebase.turn(turn_angle, wait=False)
+            elif direction == 5:
+                drivebase.straight(distance_mm, wait=False)
+            elif direction == 7:
+                drivebase.turn(turn_angle, wait=False)
+            else:
+                r.stop_drive()
+
             if attachment_direction:
                 left_attachement.run(ATTACHMENT_SPEED * attachment_direction)
             else:
                 left_attachement.stop()
 
-            await wait(duration_ms)
+            while watch.time() < duration_ms or not drivebase.done():
+                await wait(10)
+            left_attachement.stop()
         print("Replay complete")
     finally:
         is_replaying = False
-        drivebase.stop()
+        r.stop_drive()
         left_attachement.stop()
 
 async def main1():
     global is_recording, recording_sample
+    global recording_left_start, recording_right_start
 
-    # This main task will handle driving and the motors that power
-    # the left and right attachements.
-    left.control.limits(acceleration=2500)
-    right.control.limits(acceleration=2500)
     print_counter = 0
     active_direction = 0
     left_start = left.angle()
@@ -174,7 +206,12 @@ async def main1():
                 if recording_sample is not None:
                     elapsed = watch.time()
                     if elapsed > 0:
-                        recording.append((recording_sample, elapsed))
+                        append_recording_segment(
+                            recording_sample,
+                            elapsed,
+                            recording_left_start,
+                            recording_right_start,
+                        )
                     recording_sample = None
                 print("Recording stopped: {0} actions".format(len(recording)))
                 print_recording_code()
@@ -198,6 +235,30 @@ async def main1():
         direction = controller.dpad()
         if direction not in (1, 3, 5, 7):
             direction = 0
+        if is_recording:
+            attachment_direction = 0
+            if Button.RB in pressed:
+                attachment_direction = 1
+            elif Button.LB in pressed:
+                attachment_direction = -1
+            sample = direction + 8 * (attachment_direction + 1)
+            if recording_sample is None:
+                recording_sample = sample
+                recording_left_start = left.angle()
+                recording_right_start = right.angle()
+                watch.reset()
+            elif sample != recording_sample:
+                elapsed = watch.time()
+                append_recording_segment(
+                    recording_sample,
+                    elapsed,
+                    recording_left_start,
+                    recording_right_start,
+                )
+                recording_sample = sample
+                recording_left_start = left.angle()
+                recording_right_start = right.angle()
+                watch.reset()
         # The dpad direction selects which way we drive. Releasing the
         # dpad (direction 0) does not reset the distance, so inching
         # ahead in the same direction with several short presses still
@@ -243,37 +304,20 @@ async def main1():
         if direction == 1:
             # Reverse. Use the drive base so the gyro keeps us
             # driving straight.
-            drivebase.drive(-DRIVE_SPEED, 0)
+            r.drive_straight(-DRIVE_SPEED)
         elif direction == 3:
             # Right
-            drivebase.drive(0, -TURN_RATE)
+            r.drive_turn(-TURN_RATE)
         elif direction == 5:
             # Forward. Use the drive base so the gyro keeps us
             # driving straight.
-            drivebase.drive(DRIVE_SPEED, 0)
+            r.drive_straight(DRIVE_SPEED)
         elif direction == 7:
             # Left
-            drivebase.drive(0, TURN_RATE)
+            r.drive_turn(TURN_RATE)
         else:
             # Nothing (or an ignored diagonal tap), so stop.
-            drivebase.stop()
-
-        if is_recording:
-            attachment_direction = 0
-            if Button.RB in pressed:
-                attachment_direction = 1
-            elif Button.LB in pressed:
-                attachment_direction = -1
-            sample = direction + 8 * (attachment_direction + 1)
-            if recording_sample is None:
-                recording_sample = sample
-                watch.reset()
-            elif sample != recording_sample:
-                elapsed = watch.time()
-                watch.reset()
-                if elapsed > 0:
-                    recording.append((recording_sample, elapsed))
-                recording_sample = sample
+            r.stop_drive()
 
 async def attachment_stepper(motor, label, positive_button, negative_button):
     while True:
