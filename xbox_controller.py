@@ -58,13 +58,13 @@ DIRECTION_NAMES = {
 
 def apply_direction(direction):
     if direction == 1:
-        r.drive_straight(-DRIVE_SPEED)
-    elif direction == 3:
-        r.drive_turn(-TURN_RATE)
-    elif direction == 5:
         r.drive_straight(DRIVE_SPEED)
-    elif direction == 7:
+    elif direction == 3:
         r.drive_turn(TURN_RATE)
+    elif direction == 5:
+        r.drive_straight(-DRIVE_SPEED)
+    elif direction == 7:
+        r.drive_turn(-TURN_RATE)
     else:
         r.stop_drive()
 
@@ -302,19 +302,19 @@ async def main1():
                         print("Distance driven: {0:.1f} cm".format(drive_value))
         # Use the direction pad for driving.
         if direction == 1:
-            # Reverse. Use the drive base so the gyro keeps us
-            # driving straight.
-            r.drive_straight(-DRIVE_SPEED)
-        elif direction == 3:
-            # Right
-            r.drive_turn(-TURN_RATE)
-        elif direction == 5:
             # Forward. Use the drive base so the gyro keeps us
             # driving straight.
             r.drive_straight(DRIVE_SPEED)
+        elif direction == 3:
+            # Right
+            r.drive_turn(TURN_RATE)
+        elif direction == 5:
+            # Reverse. Use the drive base so the gyro keeps us
+            # driving straight.
+            r.drive_straight(-DRIVE_SPEED)
         elif direction == 7:
             # Left
-            r.drive_turn(TURN_RATE)
+            r.drive_turn(-TURN_RATE)
         else:
             # Nothing (or an ignored diagonal tap), so stop.
             r.stop_drive()

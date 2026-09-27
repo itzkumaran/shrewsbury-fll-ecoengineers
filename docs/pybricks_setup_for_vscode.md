@@ -320,3 +320,47 @@ To get the best editing experience when working with this project in VS Code, yo
      -- helpful warnings while typing
 
 These extensions allow VS Code to better understand the Pybricks APIs used in this project. Without them, the editor may show missing autocomplete or confusing red squiggles even when the code is correct.
+
+14. Robot Configuration and Calibration
+
+All robot settings live in robot.py. Mission files, xbox_controller.py and recorded_mission.py all use them — never re-define motors or geometry in another file.
+
+Current values (verified on lucky-chicken-2):
+
+  - Left drive motor: Port B, COUNTERCLOCKWISE
+  - Right drive motor: Port F, CLOCKWISE
+  - Left / right attachment motors: Port A / Port E
+  - TIRE_DIAMETER = 56 mm, AXLE_TRACK = 113 mm
+  - STRAIGHT_ACCEL = 500, TURN_ACCEL = 1000 (values above ~1000-10000 are rejected by Pybricks with "Invalid argument")
+  - Gyro-assisted driving ON, HEADING_KP_MULTIPLIER = 8.0
+
+Sign convention:
+
+  - straight(+) = forward, straight(-) = backward
+  - turn(+) = right (clockwise), turn(-) = left
+
+Startup: keep the robot still for about 1 second after a program starts so the gyro can calibrate.
+
+Checking a robot (do this for each hub, e.g. lucky-chicken-1, 3, 4):
+
+  a) Ports — run the port test and confirm motors on A, B, E, F:
+
+     python -m pybricksdev run ble --name lucky-chicken-N port_test.py
+
+     "Motor OK" = motor connected. The error text shown for empty ports is expected.
+
+  b) Direction — r.robot.straight(100) must drive FORWARD and r.robot.turn(90) must turn RIGHT.
+     - Drives backward AND turns left: flip BOTH LDM_POSITIVE_DIRECTION and RDM_POSITIVE_DIRECTION.
+     - Drives forward but turns the wrong way: the left/right ports are swapped in PORT_MAPPING.
+     - Spins in place instead of driving straight: only one motor direction is wrong.
+
+  c) Distance — mark the start, run r.robot.straight(300), measure.
+     If it is off, set TIRE_DIAMETER = 56 * measured / 300 and scale AXLE_TRACK by the same factor.
+
+  d) Turns — r.robot.turn(360) should end facing the start direction.
+     Over-rotating: lower AXLE_TRACK. Under-rotating: raise it.
+
+  e) Drift — run 5 forward/back 300 mm cycles and measure the sideways offset from the start mark.
+     If it is large, first check the front ball caster spins freely and is centered between the wheels,
+     then raise HEADING_KP_MULTIPLIER (tested: 2 -> 20 mm, 4 -> 9 mm, 8 -> 3 mm on lucky-chicken-2).
+
