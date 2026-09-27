@@ -5,7 +5,7 @@
 # This script initializes the robot, displays battery status, 
 # and starts the program selection menu.
 #
-# Author: Bolton Robotics
+# Author: ECO Engineers
 # Date: 2025-03-15
 # Version: 1.0
 #

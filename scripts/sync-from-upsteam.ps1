@@ -27,7 +27,7 @@
     coordinate with Steve or Dan to decide how to integrate.
 
 .NOTES
-    Author:   Steven Erat with Claude (Bolton Robotics chapter)
+    Author:   Steven Erat with Claude (Shrewsbury ECO Engineers chapter)
     Audience: Steve, Dan, or any coach with a configured team laptop
 
     Run from anywhere inside the repo (the script cd's to the repo root

@@ -6,7 +6,7 @@
 # centralizes all necessary imports so that mission files can use robot features 
 # without redundant imports.
 #
-# Author: Bolton Robotics
+# Author: ECO Engineers
 # Initial Date: 2025-03-15
 # Last Modified: 2026-03-12
 # Version: 1.1

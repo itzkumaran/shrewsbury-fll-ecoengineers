@@ -1,6 +1,6 @@
 # Provisioning a New FLL Team Laptop
 
-A guide for any coach setting up a donated laptop for a Bolton Robotics FLL
+A guide for any coach setting up a donated laptop for a ECO Engineers FLL
 team. Start with **Quick Start** below. If anything's unclear, the
 **Detailed Steps** section that follows expands every line with specifics.
 

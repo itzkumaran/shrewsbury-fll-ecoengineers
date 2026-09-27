@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Standardized setup script for Bolton Robotics FLL chapter laptops.
+    Standardized setup script for ECO Engineers FLL chapter laptops.
 
 .DESCRIPTION
     Run this script ONCE per donated laptop, while logged in as the
@@ -36,7 +36,7 @@
       team to $KnownTeams afterward so it appears in the menu next time.
 
 .NOTES
-    Author:   Steven Erat with Claude (Bolton Robotics chapter)
+    Author:   Steven Erat with Claude (Shrewsbury ECO Engineers chapter)
     Audience: FLL chapter coaches provisioning team laptops
     Tested on: Windows 11 (should also work on Windows 10 with winget installed)
 
@@ -68,7 +68,7 @@ $KnownTeams = @{
 # Show menu if no team number was passed on the command line
 if (-not $TeamNumber) {
     Write-Host ""
-    Write-Host "Bolton Robotics FLL -- known teams:" -ForegroundColor Cyan
+    Write-Host "ECO Engineers FLL -- known teams:" -ForegroundColor Cyan
     foreach ($t in $KnownTeams.Keys | Sort-Object) {
         $label = if ($KnownTeams[$t].Name) { $KnownTeams[$t].Name } else { "(unnamed)" }
         Write-Host "  $t  $label"
@@ -119,11 +119,11 @@ if (-not $KnownTeams.ContainsKey($TeamNumber)) {
 
 # Resolve team values
 $teamData    = $KnownTeams[$TeamNumber]
-$TeamName    = if ($teamData.Name) { $teamData.Name } else { "Bolton Robotics Team $TeamNumber" }
+$TeamName    = if ($teamData.Name) { $teamData.Name } else { "ECO Engineers Team $TeamNumber" }
 $TeamEmail   = $teamData.Email
 $GitHubUser  = if ($teamData.GitHubUser) { $teamData.GitHubUser } else { "fssfll$TeamNumber" }
 
-$GitUserName  = "Bolton Robotics FLL Team $TeamNumber"  # Shows up in commit history
+$GitUserName  = "ECO Engineers FLL Team $TeamNumber"  # Shows up in commit history
 $GitUserEmail = $TeamEmail                              # Per-team email (gmail or outlook)
 $ForkUrl      = "https://github.com/$GitHubUser/spike_basecode.git"
 $UpstreamUrl  = "https://github.com/stevenerat/spike_basecode.git"

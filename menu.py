@@ -5,7 +5,7 @@
 # Allows users to choose and execute predefined missions based on display 
 # orientation, ensuring intuitive navigation.
 #
-# Author: Bolton Robotics
+# Author: ECO Engineers
 # Date: 2025-03-15
 # Version: 1.0
 #
