@@ -7,7 +7,7 @@
     student team account (which has temporary or permanent admin privileges).
 
     Pass the team number as the first argument, or run with no arguments
-    to see the team menu and be prompted.
+    to be prompted for it.
 
     The script:
       1.  Installs core software (Git, Python, VS Code, Chrome, GitHub Desktop) via winget
@@ -29,11 +29,11 @@
       - Pin shortcuts to the taskbar (Microsoft removed scripted pinning;
         right-click each desktop shortcut and choose "Pin to taskbar")
 
-    NEW TEAM SUPPORT:
-      If the team number is not in the $KnownTeams table, the script will
-      prompt for the team's email, display name, and GitHub username. No
-      script edit needed to set up a new team. You can optionally add the
-      team to $KnownTeams afterward so it appears in the menu next time.
+    PER-USER SETUP:
+      Each team member runs this on their own laptop and provides their
+      own GitHub username, name, and GitHub-linked email when prompted.
+      There is no team-wide GitHub account -- everyone commits under
+      their own identity.
 
 .NOTES
     Author:   Steven Erat with Claude (Shrewsbury ECO Engineers chapter)
@@ -46,7 +46,7 @@
 #>
 
 # =============================================================================
-# TEAM SELECTION
+# TEAM & USER SETUP
 # =============================================================================
 
 param(
@@ -54,88 +54,47 @@ param(
     [string]$TeamNumber
 )
 
-# Known chapter teams. To add a team to the menu, add an entry here.
-# Otherwise, enter the team number at the prompt and the script will
-# collect the team's email, name, and GitHub username interactively.
-$KnownTeams = @{
-    "18300" = @{ Name = "";                Email = "fss.fll.18300@outlook.com" }
-    "19991" = @{ Name = "";                Email = "fss.fll.19991@outlook.com" }
-    "27041" = @{ Name = "Thought Process"; Email = "fss.fll.27041@gmail.com"   }
-    "27042" = @{ Name = "";                Email = "fss.fll.27042@gmail.com"   }
-    "62070" = @{ Name = "";                Email = "fss.fll.62070@outlook.com" }
-}
-
-# Show menu if no team number was passed on the command line
+# Prompt for the team number if not passed on the command line
 if (-not $TeamNumber) {
     Write-Host ""
-    Write-Host "ECO Engineers FLL -- known teams:" -ForegroundColor Cyan
-    foreach ($t in $KnownTeams.Keys | Sort-Object) {
-        $label = if ($KnownTeams[$t].Name) { $KnownTeams[$t].Name } else { "(unnamed)" }
-        Write-Host "  $t  $label"
-    }
-    Write-Host "  (or enter any other 5-digit number for a new team)"
-    Write-Host ""
-    $TeamNumber = Read-Host "Enter team number for this laptop"
+    Write-Host "Setting up a laptop for the Shrewsbury ECO Engineers." -ForegroundColor Cyan
+    $TeamNumber = Read-Host "Enter your FLL team number (e.g. 27041)"
+}
+while (-not $TeamNumber -or $TeamNumber -notmatch '^\d{4,5}$') {
+    Write-Warning "Team number is required (4-5 digits)."
+    $TeamNumber = Read-Host "FLL team number"
 }
 
-# If team is unknown, collect details interactively
-if (-not $KnownTeams.ContainsKey($TeamNumber)) {
-    Write-Host ""
-    Write-Host "Team $TeamNumber is NOT in the known teams list." -ForegroundColor Yellow
-    Write-Host "This will set up the laptop as a NEW team." -ForegroundColor Yellow
-    Write-Host "(If you meant an existing team, this is a good moment to check for a typo.)" -ForegroundColor Yellow
-    $confirm = Read-Host "Continue setup for new team $TeamNumber? (Y/n)"
-    if ($confirm -and $confirm -notmatch '^[Yy]') {
-        Write-Host "Cancelled. Run the script again with the correct team number." -ForegroundColor Red
-        exit 1
-    }
-
-    Write-Host ""
-    Write-Host "Enter team email." -ForegroundColor Cyan
-    Write-Host "Chapter standard format examples (do not press Enter to accept -- type the actual email):" -ForegroundColor Cyan
-    Write-Host "  fss.fll.$TeamNumber@gmail.com" -ForegroundColor Gray
-    Write-Host "  fss.fll.$TeamNumber@outlook.com" -ForegroundColor Gray
-    $newEmail = Read-Host "Team email"
-    while (-not $newEmail -or $newEmail -notmatch '@') {
-        Write-Warning "Email is required and must contain '@'."
-        $newEmail = Read-Host "Team email"
-    }
-
-    Write-Host ""
-    $newName = Read-Host "Team display name (optional; press Enter to skip)"
-
-    Write-Host ""
-    Write-Host "Enter YOUR unique GitHub username. Each team member has their own — there is no team-wide standard." -ForegroundColor Cyan
-    $newGitHubUser = Read-Host "GitHub username"
-    while (-not $newGitHubUser) {
-        Write-Warning "GitHub username is required."
-        $newGitHubUser = Read-Host "GitHub username"
-    }
-
-    # Stash into the same structure used for known teams
-    $KnownTeams[$TeamNumber] = @{
-        Name       = $newName
-        Email      = $newEmail
-        GitHubUser = $newGitHubUser
-    }
+# Each team member has their OWN unique GitHub username. There is no
+# team-wide GitHub account -- everyone commits under their own identity.
+Write-Host ""
+Write-Host "Each team member uses their own unique GitHub username." -ForegroundColor Cyan
+Write-Host "You will clone the shared team repo at itzkumaran/shrewsbury-fll-ecoengineers." -ForegroundColor Gray
+$GitHubUser = Read-Host "Enter YOUR GitHub username"
+while (-not $GitHubUser) {
+    Write-Warning "GitHub username is required."
+    $GitHubUser = Read-Host "GitHub username"
 }
 
-# Resolve team values
-$teamData    = $KnownTeams[$TeamNumber]
-$TeamName    = if ($teamData.Name) { $teamData.Name } else { "ECO Engineers Team $TeamNumber" }
-$TeamEmail   = $teamData.Email
-$GitHubUser  = if ($teamData.GitHubUser) {
-    $teamData.GitHubUser
-} else {
-    $u = Read-Host "Enter YOUR unique GitHub username"
-    while (-not $u) { Write-Warning "GitHub username is required."; $u = Read-Host "GitHub username" }
-    $u
+# User name and email for Git commit identity.
+Write-Host ""
+Write-Host "Enter your name and email for Git commits (they appear in commit history)." -ForegroundColor Cyan
+Write-Host "Use the email linked to your GitHub account so commits attribute to you on GitHub." -ForegroundColor Gray
+$GitUserName = Read-Host "Your full name (e.g. Alex Kim)"
+while (-not $GitUserName) {
+    Write-Warning "Name is required."
+    $GitUserName = Read-Host "Your name"
+}
+$GitUserEmail = Read-Host "Your GitHub-linked email"
+while (-not $GitUserEmail -or $GitUserEmail -notmatch '@') {
+    Write-Warning "Email is required and must contain '@'."
+    $GitUserEmail = Read-Host "Your email"
 }
 
-$GitUserName  = "ECO Engineers FLL Team $TeamNumber"  # Shows up in commit history
-$GitUserEmail = $TeamEmail                              # Per-team email (gmail or outlook)
-$ForkUrl      = "https://github.com/itzkumaran/shrewsbury-fll-ecoengineers.git"
-$UpstreamUrl  = "https://github.com/stevenerat/spike_basecode.git"
+# Team identity and URLs
+$TeamName    = "Shrewsbury ECO Engineers Team $TeamNumber"
+$ForkUrl     = "https://github.com/itzkumaran/shrewsbury-fll-ecoengineers.git"
+$UpstreamUrl = "https://github.com/stevenerat/spike_basecode.git"
 
 # Local paths
 $ReposRoot     = "$env:USERPROFILE\repos"
@@ -161,8 +120,8 @@ if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Adm
 
 Write-Host ""
 Write-Host "===============================================================" -ForegroundColor Cyan
-Write-Host " FLL Laptop Setup -- Team $TeamNumber ($TeamName)" -ForegroundColor Cyan
-Write-Host " Email:  $TeamEmail" -ForegroundColor Cyan
+Write-Host " FLL Laptop Setup -- $TeamName" -ForegroundColor Cyan
+Write-Host " User:   $GitUserName <$GitUserEmail>" -ForegroundColor Cyan
 Write-Host " GitHub: $GitHubUser" -ForegroundColor Cyan
 Write-Host "===============================================================" -ForegroundColor Cyan
 Write-Host ""
@@ -582,8 +541,19 @@ if (Test-Path "$RepoPath\.git") {
 
     Write-Host ""
     Write-Host "  MANUAL STEPS in GitHub Desktop:" -ForegroundColor Cyan
-    Write-Host "    1. Sign in to GitHub (if not already signed in)." -ForegroundColor Cyan
-    Write-Host "       Use the team's GitHub account: $GitHubUser" -ForegroundColor Cyan
+    Write-Host "    1. Sign in to GitHub with YOUR own account ($GitHubUser)." -ForegroundColor Cyan
+    Write-Host "       GitHub Desktop uses browser OAuth -- no password/token typed in the app." -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "       IF a password/token IS ever asked (e.g. git CLI, credential prompt):" -ForegroundColor Yellow
+    Write-Host "       DO NOT paste your GitHub account password -- GitHub has not accepted" -ForegroundColor Yellow
+    Write-Host "       passwords for git operations since 2021. Use a Personal Access Token:" -ForegroundColor Yellow
+    Write-Host "         a) Go to https://github.com/settings/tokens" -ForegroundColor Yellow
+    Write-Host "         b) Generate new token -> Generate new token (classic)" -ForegroundColor Yellow
+    Write-Host "         c) Tick the 'repo' scope, set expiration (90 days is fine)" -ForegroundColor Yellow
+    Write-Host "         d) Click Generate token" -ForegroundColor Yellow
+    Write-Host "         e) Copy the token IMMEDIATELY -- GitHub only shows it once" -ForegroundColor Yellow
+    Write-Host "         f) Paste the TOKEN wherever git asks for a password" -ForegroundColor Yellow
+    Write-Host "       Windows Credential Manager remembers it after the first paste." -ForegroundColor Gray
     Write-Host "    2. File > Clone Repository > URL tab" -ForegroundColor Cyan
     Write-Host "         URL:        $ForkUrl" -ForegroundColor Cyan
     Write-Host "         Local path: $RepoPath" -ForegroundColor Cyan
@@ -699,9 +669,9 @@ Write-Host ""
 Write-Host "REMAINING MANUAL STEPS:" -ForegroundColor Yellow
 Write-Host "  1. Set Chrome as default browser:" -ForegroundColor White
 Write-Host "       Settings > Apps > Default apps > Google Chrome > Set default"
-Write-Host "  2. (Optional) Sign in to Chrome with $TeamEmail" -ForegroundColor White
-Write-Host "       Note: Chrome requires a Google account."
-Write-Host "       Outlook.com teams cannot sign in to Chrome -- skip this step."
+Write-Host "  2. (Optional) Sign in to Chrome with a personal Google account" -ForegroundColor White
+Write-Host "       Note: Chrome requires a Google (Gmail) account."
+Write-Host "       Skip this step if you do not use Chrome sign-in."
 Write-Host "  3. Pin desktop shortcuts to the taskbar:" -ForegroundColor White
 Write-Host "       Right-click each shortcut on the desktop, choose 'Pin to taskbar'."
 Write-Host "  4. Launch VS Code via 'Open Team $TeamNumber Code' shortcut." -ForegroundColor White

@@ -116,14 +116,29 @@ new-team vs. existing-team flow.
 
 The script is mostly hands-off, but it will pause for input in a few places:
 
-- **New team setup**: if the team number is not in the script's known-teams
-  list, it will ask you to confirm and prompt for the team email, display
-  name, and — for each user — their own unique GitHub username.
+- **Prompts for your info**: the script asks for your team number, your
+  GitHub username (each team member has their own — no team-wide
+  standard), and your name plus GitHub-linked email for Git commits.
 - **GitHub Desktop authentication and clone**: midway through, the script
   launches GitHub Desktop and pauses. Follow the on-screen instructions:
-  sign in to GitHub with your own account, clone the shared team repo
+  sign in to GitHub with your own account (GitHub Desktop uses browser
+  OAuth — no password typed in the app), clone the shared team repo
   (`itzkumaran/shrewsbury-fll-ecoengineers`) to the path the script shows,
   and press Enter in the PowerShell window when the clone is done.
+- **If git ever asks you for a password on the command line**, do NOT
+  type your GitHub account password. GitHub has not accepted passwords
+  for git operations since 2021. Instead, generate a **Personal Access
+  Token (PAT)** and paste that:
+    1. Go to `https://github.com/settings/tokens`
+    2. **Generate new token → Generate new token (classic)**
+    3. Tick the **`repo`** scope
+    4. Set expiration (90 days is a reasonable default)
+    5. Click **Generate token**
+    6. **Copy the token immediately** — GitHub only shows it once
+    7. Paste it wherever git asks for a password
+
+  Windows Credential Manager will remember the token after the first
+  push, so you only paste it once per laptop.
 
 If anything goes sideways, the script is safe to re-run from the start.
 
