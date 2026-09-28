@@ -174,6 +174,13 @@ TIRE_DIAMETER: int = 56  # mm
 AXLE_TRACK: int = 114  # mm; 56x28 black wheels: sweep 104-119 on lucky-chicken-2, wheel count matches gyro at ~114 (ruler says 119). 56x14 blue wheels: 113.
 STRAIGHT_SPEED: int = 300  # mm/sec
 STRAIGHT_ACCEL: int = 500  # mm/sec^2 — gentler start/stop reduces ball-caster push drift (tested on lucky-chicken-2)
+# Gyro calibration per hub: degrees the gyro reports for one REAL full turn.
+# Each hub's gyro is slightly different. Measure by spinning 5 full turns
+# and checking how far short/past the start line the robot stops.
+# lucky-chicken-2 read ~0.8% high (5 gyro turns fell ~15 deg short).
+HEADING_CORRECTIONS: dict = {
+    "lucky-chicken-2": 363.7,
+}
 HEADING_KP_MULTIPLIER: float = 8.0  # strong gyro heading hold; 8x gave least drift and least oscillation (lucky-chicken-2)
 TURN_RATE: int = 45  # deg/sec
 TURN_ACCEL: int = 1000  # deg/sec^2 — same platform cap as STRAIGHT_ACCEL
@@ -314,6 +321,11 @@ class robot:
             self.hub = PrimeHub(top_side=Axis.Z, front_side=-Axis.Y)  # pyright: ignore
             self.hub.display.orientation(self.display_orientation)
             self.hub.speaker.volume(50)
+            # Apply this hub's gyro calibration (saved on the hub too, but
+            # re-applying keeps it correct after firmware updates/resets).
+            correction = HEADING_CORRECTIONS.get(self.hub.system.name())
+            if correction and self.hub.imu.settings()[-1] != correction:
+                self.hub.imu.settings(heading_correction=correction)
         except Exception as e:
             print("Hub initialization error", e)
             raise

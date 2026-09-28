@@ -177,6 +177,28 @@ That's **93% less drift!** Over 3 meters of driving, the robot is now only off b
 
 ---
 
+## Experiment 8: The gyro was a little bit wrong
+
+**Problem:** Straight lines were very accurate, but turns looked wrong on the floor, even though the gyro said every turn was perfect.
+
+**Why:** Every hub's gyro is slightly different. Ours counted a little too fast, so it thought it had finished turning before it really had.
+
+**Test:** We lined the robot up with a tape line and told it to spin **5 full turns** (1800°). Five turns make a tiny error big enough to see.
+
+| Try | Gyro setting | Where it stopped |
+|---|---|---|
+| 1 | 360 (not calibrated) | about 15° short |
+| 2 | 362.9 | 3–4° short |
+| 3 | 363.6 | 2° short |
+| 4 | 363.9 | a bit too far |
+| 5 | **363.7** | lined up ✅ |
+
+**Fix:** We saved **363.7** as lucky-chicken-2's gyro correction in `robot.py`. Now 1 real turn = 360° on the gyro.
+
+**Lesson:** A sensor can be *consistent* and still be *wrong*. Check it against something real, like a tape line on the floor.
+
+---
+
 ## Final robot settings
 
 | Setting | Value | Why |

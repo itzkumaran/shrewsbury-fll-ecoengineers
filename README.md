@@ -23,6 +23,7 @@ This project is intended to be developed locally in VS Code, largely replacing d
 | Attachment motors | Left = Port A, Right = Port E |
 | Wheels | 56 x 28 mm black wheels; `AXLE_TRACK` 114 mm (best value from a 104-119 mm sweep; a ruler says 119 mm). The 56 x 14 blue wheels need 113 mm |
 | Driving | Gyro-assisted, `STRAIGHT_ACCEL` 500, heading gain x8 |
+| Gyro calibration | `HEADING_CORRECTIONS` in `robot.py`: lucky-chicken-2 = 363.7 (its gyro reads ~1% high); each hub needs its own value |
 | Layout | Two rear drive wheels + front ball caster |
 
 Sign convention: `straight(+)` drives **forward**, `turn(+)` turns **right** (clockwise).

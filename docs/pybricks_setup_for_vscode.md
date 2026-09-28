@@ -364,3 +364,7 @@ Checking a robot (do this for each hub, e.g. lucky-chicken-1, 3, 4):
      If it is large, first check the front ball caster spins freely and is centered between the wheels,
      then raise HEADING_KP_MULTIPLIER (tested: 2 -> 20 mm, 4 -> 9 mm, 8 -> 3 mm on lucky-chicken-2).
 
+  f) Gyro calibration - each hub's gyro reads a little high or low. Line the robot up with a
+     tape line, run r.robot.turn(1800) (5 full turns), and see how far short or past the line it stops.
+     New value = old HEADING_CORRECTIONS value x 1800 / (1800 - degrees short), or + degrees past.
+     Add it to HEADING_CORRECTIONS in robot.py under the hub's name. Repeat until it lines up.
