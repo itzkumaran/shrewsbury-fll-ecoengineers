@@ -104,6 +104,13 @@ SPEED_LEVELS = [
 ]
 speed_level = 1  # index into SPEED_LEVELS
 
+# Acceleration used while driving with the controller, recording and
+# replaying (mm/s^2). Quicker than robot.py's 500 so direction changes feel
+# snappy: forward-to-reverse took 0.52 s at 500 and 0.30 s at 1000.
+# Replay and the printed mission code use the same value so they match.
+CONTROLLER_STRAIGHT_ACCEL = 1000
+drivebase.settings(straight_acceleration=CONTROLLER_STRAIGHT_ACCEL)
+
 # Movement recording is kept in memory for the current program run.
 recording = []
 is_recording = False
@@ -209,27 +216,8 @@ def print_recording_code():
         return
 
     print("----- RECORDED MISSION CODE -----")
-    print("# Paste this into recorded_mission.py or a mission file")
-    print("from pybricks.tools import wait")
-    print("from robot import robot")
-    print("")
-    print("ATTACHMENT_SPEED = {0}".format(ATTACHMENT_SPEED))
-    # Build the list text by hand: MicroPython can't round() whole numbers
-    # to decimal places (NotImplementedError).
-    print("SPEED_LEVELS = [" + ", ".join(
-        "({0:.1f}, {1})".format(s, tr) for s, tr in SPEED_LEVELS) + "]")
-    print("")
-    print("")
-    print("def face(r, target):")
-    print("    # Turn until the gyro reads the target heading.")
-    print("    error = target - r.hub.imu.heading()")
-    print("    if abs(error) >= 0.5:")
-    print("        r.robot.reset(0, r.hub.imu.heading())")
-    print("        r.robot.turn(error)")
-    print("    r.robot.reset(0, r.hub.imu.heading())")
-    print("")
-    print("")
-    print("def recorded_mission(r: robot):")
+    print("# Paste the lines below inside a mission function, e.g. def mission_two(r: robot):")
+    print("# (they only use r, so no extra imports or constants are needed)")
     print("    drivebase = r.robot")
     print("    left_attachement = r.lam")
     print("    start = r.hub.imu.heading()  # headings below are measured from here")
@@ -238,21 +226,22 @@ def print_recording_code():
     for (direction, attachment_direction, duration_ms, distance_mm, turn_deg, level,
          heading_start, heading_end) in recording_steps():
         if direction in (1, 3, 5, 7) and level != last_level:
-            print("    drivebase.settings(straight_speed=SPEED_LEVELS[{0}][0], turn_rate=SPEED_LEVELS[{0}][1])".format(level))
+            print("    drivebase.settings(straight_speed={0:.1f}, straight_acceleration={1}, turn_rate={2})".format(
+                SPEED_LEVELS[level][0], CONTROLLER_STRAIGHT_ACCEL, SPEED_LEVELS[level][1]))
             last_level = level
         if attachment_direction:
-            print("    left_attachement.run_time({0}ATTACHMENT_SPEED, {1}, wait=False)".format(
-                "-" if attachment_direction < 0 else "", duration_ms))
+            print("    left_attachement.run_time({0}, {1}, wait=False)".format(
+                ATTACHMENT_SPEED * attachment_direction, duration_ms))
 
         if direction in (1, 5):
             target = "{0:.1f}".format(heading_start)
             if target != last_face:
-                print("    face(r, start + {0})".format(target))
+                print("    r.face(start + {0})".format(target))
                 last_face = target
             print("    drivebase.straight({0:.1f})".format(distance_mm))
         elif direction in (3, 7):
             last_face = "{0:.1f}".format(heading_end)
-            print("    face(r, start + {0})".format(last_face))
+            print("    r.face(start + {0})".format(last_face))
         elif not attachment_direction:
             # Keep the pause, same length as in the recording.
             print("    drivebase.stop()")
@@ -483,8 +472,10 @@ async def main1():
             # Left
             r.drive_turn(-turn_rate)
         else:
-            # Nothing (or an ignored diagonal tap), so stop.
-            r.stop_drive()
+            # Nothing (or an ignored diagonal tap), so stop. Brake instead of
+            # coasting so reversing direction doesn't have to wait for the
+            # robot to roll to a stop.
+            r.brake_drive()
 
 async def attachment_stepper(motor, label, positive_button, negative_button):
     while True:

@@ -21,7 +21,7 @@ This project is intended to be developed locally in VS Code, largely replacing d
 |---|---|
 | Drive motors | Left = Port B (`COUNTERCLOCKWISE`), Right = Port F (`CLOCKWISE`) |
 | Attachment motors | Left = Port A, Right = Port E |
-| Wheels | 56 x 14 mm blue wheels; `AXLE_TRACK` 113 mm (gyro-calibrated, matches ruler 112 mm). The wider 56 x 28 black wheels were tested and need 110 mm |
+| Wheels | 56 x 28 mm black wheels; `AXLE_TRACK` 114 mm (best value from a 104-119 mm sweep; a ruler says 119 mm). The 56 x 14 blue wheels need 113 mm |
 | Driving | Gyro-assisted, `STRAIGHT_ACCEL` 500, heading gain x8 |
 | Layout | Two rear drive wheels + front ball caster |
 

@@ -185,8 +185,8 @@ That's **93% less drift!** Over 3 meters of driving, the robot is now only off b
 | Right drive motor | Port F | Found by the port test |
 | Attachment motors | Ports A and E | Found by the port test |
 | Wheel size | 56 mm | Printed on the tire |
-| Wheels | 56 x 14 mm blue | We also tried wider 56 x 28 black wheels: less slipping, but no better replay |
-| Axle track | 113 mm | Calculated from the gyro, matches the ruler (black wheels would need 110 mm) |
+| Wheels | 56 x 28 mm black | Wider tires grip better: almost no slipping on turns |
+| Axle track | 114 mm | We tested 104 to 119 mm; at 114 the wheels' turn count matches the gyro. A ruler says 119 mm, but wide tires turn as if the wheels were a bit closer together (blue 56 x 14 wheels need 113 mm) |
 | Gyro steering | On, strength ×8 | Cut drift from 42 mm to 3 mm |
 
 **Remember:** `straight(+)` = forward, `turn(+)` = right.

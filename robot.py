@@ -171,7 +171,7 @@ else:
 #   r.robot.arc()
 #   r.robot.drive()
 TIRE_DIAMETER: int = 56  # mm
-AXLE_TRACK: int = 113  # mm; gyro-calibrated on lucky-chicken-2 with 56x14 blue wheels (matches ruler 112 mm). 56x28 black wheels would need 110.
+AXLE_TRACK: int = 114  # mm; 56x28 black wheels: sweep 104-119 on lucky-chicken-2, wheel count matches gyro at ~114 (ruler says 119). 56x14 blue wheels: 113.
 STRAIGHT_SPEED: int = 300  # mm/sec
 STRAIGHT_ACCEL: int = 500  # mm/sec^2 — gentler start/stop reduces ball-caster push drift (tested on lucky-chicken-2)
 HEADING_KP_MULTIPLIER: float = 8.0  # strong gyro heading hold; 8x gave least drift and least oscillation (lucky-chicken-2)
@@ -413,6 +413,24 @@ class robot:
         # holds the heading the robot has right now.
         self._straight_drive_active = True
         self.robot.drive(speed, 0)
+
+    def face(self, target):
+        """Turn in place until the gyro reads the target heading (degrees).
+
+        Used by recorded missions: face(start + 52.3) turns to 52.3 degrees
+        from the heading the mission started at.
+        """
+        error = target - self.hub.imu.heading()
+        if abs(error) >= 0.5:
+            self.robot.reset(0, self.hub.imu.heading())
+            self.robot.turn(error)
+        # Hold this heading on the next straight.
+        self.robot.reset(0, self.hub.imu.heading())
+
+    def brake_drive(self):
+        """Stop driving by braking (quicker, crisper stop than stop_drive)."""
+        self.robot.brake()
+        self._straight_drive_active = False
 
     def stop_drive(self):
         """Stop driving and require a new heading reference next time."""
