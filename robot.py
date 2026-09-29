@@ -34,6 +34,8 @@
 ################################################################################
 
 # --- Pybricks imports (available at runtime on the hub) ---
+import umath
+
 from pybricks.pupdevices import Motor, ColorSensor
 from pybricks.parameters import (
     Port,
@@ -174,11 +176,12 @@ else:
 #   r.robot.drive()
 TIRE_DIAMETER: int = 56  # mm
 AXLE_TRACK: int = 113  # mm; gyro-calibrated on lucky-chicken-2 (was 130, over-rotated turns ~15%)
-STRAIGHT_SPEED: int = 300  # mm/sec
+STRAIGHT_SPEED: float = 250 / 360 * umath.pi * TIRE_DIAMETER  # mm/sec; matches recorded mission wheel speed
 STRAIGHT_ACCEL: int = 500  # mm/sec^2 — gentler start/stop reduces ball-caster push drift (tested on lucky-chicken-2)
 HEADING_KP_MULTIPLIER: float = 8.0  # strong gyro heading hold; 8x gave least drift and least oscillation (lucky-chicken-2)
 TURN_RATE: int = 45  # deg/sec
 TURN_ACCEL: int = 1000  # deg/sec^2 — same platform cap as STRAIGHT_ACCEL
+ATTACHMENT_SPEED: int = 120  # deg/sec; matches recorded mission speed
 
 #############################################
 # Define Robot Port Mappings
@@ -374,6 +377,7 @@ class robot:
                     self.port_mapping["lam"],
                     positive_direction=LAM_POSITIVE_DIRECTION,
                 )
+                self.lam.control.limits(speed=ATTACHMENT_SPEED)
             except Exception as e:
                 print("Left attachment motor initialization error:", e)
         
@@ -384,6 +388,7 @@ class robot:
                     self.port_mapping["ram"],
                     positive_direction=RAM_POSITIVE_DIRECTION,
                 )
+                self.ram.control.limits(speed=ATTACHMENT_SPEED)
             except Exception as e:
                 print("Right attachment motor initialization error", e)
         
