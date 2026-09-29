@@ -24,6 +24,7 @@ def mission_two(r: robot):
     r.robot.turn(-50)
     r.robot.straight(375)
     r.robot.straight(-100)
+    "HIHIHIHI TEST"
     #r.robot.turn(70)
     #r.robot.straight(275)
     #r.robot.turn(-90)
