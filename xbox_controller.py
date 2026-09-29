@@ -9,13 +9,15 @@ from robot import (
     TIRE_DIAMETER,
     robot,
 )
+from recorded_mission import recorded_mission
 
 # Initialize robot instance to configure PrimeHub gyro orientation,
 # drive base geometry, and motor directions centrally from robot.py.
 r = robot()
 left = r.ldm
 right = r.rdm
-left_attachement = r.lam
+left_attachment = r.lam
+right_attachment = r.ram
 drivebase = r.robot
 controller = XboxController()
 
@@ -23,8 +25,10 @@ WHEEL_DIAMETER = TIRE_DIAMETER  # mm
 TRACK_WIDTH = AXLE_TRACK  # mm
 
 # Treat wherever the attachments happen to be at startup as 0.
-left_attachement.reset_angle(0)
-left_attachement.control.limits(acceleration=1000)
+left_attachment.reset_angle(0)
+left_attachment.control.limits(acceleration=1000)
+right_attachment.reset_angle(0)
+right_attachment.control.limits(acceleration=1000)
 
 # Linear speed for forward/reverse that matches the previous 250 deg/s
 # wheel speed used for turning.
@@ -32,7 +36,7 @@ DRIVE_SPEED = 250 / 360 * umath.pi * WHEEL_DIAMETER  # mm/s
 TURN_RATE = 45  # deg/s, limited to make pivot turns smoother
 RECORD_SAMPLE_MS = 10
 ATTACHMENT_SPEED = 120  # deg/s for smooth, moderate attachment movement
-ACTION_SETTLE_MS = 100
+TRIGGER_PRESS_THRESHOLD = 50
 
 # Movement recording is kept in memory for the current program run.
 recording = []
@@ -79,6 +83,11 @@ def append_recording_segment(sample, duration_ms, left_start, right_start):
         ))
 
 
+def attachment_directions(sample):
+    attachment_states = sample // 8
+    return attachment_states % 3 - 1, attachment_states // 3 - 1
+
+
 def print_recording_code():
     if not recording:
         print("No movement recording available")
@@ -86,16 +95,26 @@ def print_recording_code():
 
     print("----- RECORDED MISSION CODE -----")
     print("# Paste this into recorded_mission.py or a mission file")
-    print("from pybricks.tools import wait")
-    print("ACTION_SETTLE_MS = {0}".format(ACTION_SETTLE_MS))
+    print("import umath")
+    print("from pybricks.tools import run_task, wait")
+    print("from robot import AXLE_TRACK, TIRE_DIAMETER, robot")
+    print("WHEEL_DIAMETER = TIRE_DIAMETER")
+    print("TRACK_WIDTH = AXLE_TRACK")
+    print("DRIVE_SPEED = {0}".format(DRIVE_SPEED))
+    print("TURN_RATE = {0}".format(TURN_RATE))
+    print("ATTACHMENT_SPEED = {0}".format(ATTACHMENT_SPEED))
     print("")
-    print("def recorded_mission(r: robot):")
+    print("async def recorded_mission(r: robot):")
     print("    drivebase = r.robot")
-    print("    left_attachement = r.lam")
+    print("    left_attachment = r.lam")
+    print("    right_attachment = r.ram")
+    print("    drivebase.settings(straight_speed=DRIVE_SPEED, turn_rate=TURN_RATE)")
+    print("    left_attachment.stop()")
+    print("    right_attachment.stop()")
     print("")
     for sample, duration_ms, left_delta, right_delta in recording:
         direction = sample % 8
-        attachment_direction = sample // 8 - 1
+        left_attachment_direction, right_attachment_direction = attachment_directions(sample)
         distance_mm = (
             (left_delta + right_delta) / 2 / 360
             * umath.pi * WHEEL_DIAMETER
@@ -105,27 +124,36 @@ def print_recording_code():
             / (2 * TRACK_WIDTH)
         )
 
-        if direction == 1:
-            print("    drivebase.straight({0:.1f})".format(distance_mm))
-        elif direction == 3:
-            print("    drivebase.turn({0:.1f})".format(turn_angle))
-        elif direction == 5:
-            print("    drivebase.straight({0:.1f})".format(distance_mm))
-        elif direction == 7:
-            print("    drivebase.turn({0:.1f})".format(turn_angle))
+        if direction in (1, 5):
+            print("    drivebase.straight({0:.1f}, wait=False)".format(distance_mm))
+        elif direction in (3, 7):
+            print("    drivebase.turn({0:.1f}, wait=False)".format(turn_angle))
         else:
             print("    drivebase.stop()")
 
-        if attachment_direction == 1:
-            print("    left_attachement.run_time(ATTACHMENT_SPEED, {0})".format(duration_ms))
-        elif attachment_direction == -1:
-            print("    left_attachement.run_time(-ATTACHMENT_SPEED, {0})".format(duration_ms))
+        if left_attachment_direction:
+            print("    left_attachment.run_time({0}, {1}, wait=False)".format(
+                ATTACHMENT_SPEED * left_attachment_direction, duration_ms
+            ))
         else:
-            print("    left_attachement.stop()")
-        print("    wait(ACTION_SETTLE_MS)")
+            print("    left_attachment.stop()")
+        if right_attachment_direction:
+            print("    right_attachment.run_time({0}, {1}, wait=False)".format(
+                ATTACHMENT_SPEED * right_attachment_direction, duration_ms
+            ))
+        else:
+            print("    right_attachment.stop()")
+        print("    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():")
+        print("        await wait(10)")
 
     print("    drivebase.stop()")
-    print("    left_attachement.stop()")
+    print("    left_attachment.stop()")
+    print("    right_attachment.stop()")
+    print("")
+    print("if __name__ == \"__main__\":")
+    print("    r = robot()")
+    print("    r.show_battery_level()")
+    print("    run_task(recorded_mission(r))")
     print("----- END RECORDED MISSION CODE -----")
 
 
@@ -142,7 +170,7 @@ async def replay_recording():
         drivebase.settings(straight_speed=DRIVE_SPEED, turn_rate=TURN_RATE)
         for sample, duration_ms, left_delta, right_delta in recording:
             direction = sample % 8
-            attachment_direction = sample // 8 - 1
+            left_attachment_direction, right_attachment_direction = attachment_directions(sample)
 
             distance_mm = (
                 (left_delta + right_delta) / 2 / 360
@@ -164,22 +192,29 @@ async def replay_recording():
             else:
                 r.stop_drive()
 
-            if attachment_direction:
-                left_attachement.run(ATTACHMENT_SPEED * attachment_direction)
+            if left_attachment_direction:
+                left_attachment.run(ATTACHMENT_SPEED * left_attachment_direction)
             else:
-                left_attachement.stop()
+                left_attachment.stop()
+            if right_attachment_direction:
+                right_attachment.run(ATTACHMENT_SPEED * right_attachment_direction)
+            else:
+                right_attachment.stop()
 
             while watch.time() < duration_ms or not drivebase.done():
                 await wait(10)
-            left_attachement.stop()
+            left_attachment.stop()
+            right_attachment.stop()
         print("Replay complete")
     finally:
         is_replaying = False
         r.stop_drive()
-        left_attachement.stop()
+        left_attachment.stop()
+        right_attachment.stop()
 
 async def main1():
     global is_recording, recording_sample
+    global is_replaying
     global recording_left_start, recording_right_start
 
     print_counter = 0
@@ -189,10 +224,13 @@ async def main1():
     last_drive_value = None
     previous_y_pressed = False
     previous_a_pressed = False
+    previous_lt_pressed = False
     while True:
         pressed = controller.buttons.pressed()
         y_pressed = Button.Y in pressed
         a_pressed = Button.A in pressed
+        left_trigger, _ = controller.triggers()
+        lt_pressed = left_trigger >= TRIGGER_PRESS_THRESHOLD
 
         if y_pressed and not previous_y_pressed:
             if not is_recording:
@@ -218,11 +256,27 @@ async def main1():
 
         if a_pressed and not previous_a_pressed and not is_recording and not is_replaying:
             drivebase.stop()
-            left_attachement.stop()
+            left_attachment.stop()
+            right_attachment.stop()
             await replay_recording()
+
+        if lt_pressed and not previous_lt_pressed and not is_recording and not is_replaying:
+            print("Running recorded mission")
+            is_replaying = True
+            drivebase.stop()
+            left_attachment.stop()
+            right_attachment.stop()
+            try:
+                await recorded_mission(r)
+            finally:
+                r.stop_drive()
+                left_attachment.stop()
+                right_attachment.stop()
+                is_replaying = False
 
         previous_y_pressed = y_pressed
         previous_a_pressed = a_pressed
+        previous_lt_pressed = lt_pressed
 
         if is_replaying:
             await wait(10)
@@ -236,12 +290,21 @@ async def main1():
         if direction not in (1, 3, 5, 7):
             direction = 0
         if is_recording:
-            attachment_direction = 0
+            left_attachment_direction = 0
+            right_attachment_direction = 0
             if Button.RB in pressed:
-                attachment_direction = 1
+                left_attachment_direction = 1
             elif Button.LB in pressed:
-                attachment_direction = -1
-            sample = direction + 8 * (attachment_direction + 1)
+                left_attachment_direction = -1
+            if Button.X in pressed:
+                right_attachment_direction = 1
+            elif Button.B in pressed:
+                right_attachment_direction = -1
+            attachment_states = (
+                left_attachment_direction + 1
+                + 3 * (right_attachment_direction + 1)
+            )
+            sample = direction + 8 * attachment_states
             if recording_sample is None:
                 recording_sample = sample
                 recording_left_start = left.angle()
@@ -336,7 +399,8 @@ async def attachment_stepper(motor, label, positive_button, negative_button):
 async def main():
     await multitask(
         main1(),
-        attachment_stepper(left_attachement, "Left attachement", Button.RB, Button.LB),
+        attachment_stepper(left_attachment, "Left attachment", Button.RB, Button.LB),
+        attachment_stepper(right_attachment, "Right attachment", Button.X, Button.B),
     )
 
 run_task(main())

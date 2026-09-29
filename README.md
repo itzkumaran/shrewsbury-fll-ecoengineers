@@ -38,8 +38,10 @@ Measured accuracy: 300 mm commanded = ~300 mm driven; 90° turns within 1°; 3 m
 | D-pad Up / Down | Drive forward / backward |
 | D-pad Right / Left | Turn right / left in place |
 | RB / LB | Left attachment motor forward / backward |
+| X / B | Right attachment motor forward / backward |
 | Y | Start / stop recording (prints mission code when stopped) |
 | A | Replay the last recording |
+| LT | Run `recorded_mission.py` |
 
 ## Other robots
 

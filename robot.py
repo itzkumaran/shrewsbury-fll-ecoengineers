@@ -101,6 +101,8 @@ if TYPE_CHECKING:
 
         def stop(self) -> None: ...
 
+        def done(self) -> bool: ...
+
     class ColorSensorLike(Protocol):
         """Structural type matching both ColorSensor and NoOpColorSensor."""
 
@@ -279,6 +281,9 @@ class NoOpMotor:
     def stop(self):
         return None
 
+    def done(self):
+        return True
+
 
 class NoOpColorSensor:
     """ColorSensor-shaped object that returns safe defaults when not installed."""
@@ -352,8 +357,10 @@ class robot:
                 TURN_RATE, TURN_ACCEL,
             )
             # Strengthen heading correction (keeps ki/kd at Pybricks defaults).
-            kp, ki, kd, _, _ = self.robot.heading_control.pid()
-            self.robot.heading_control.pid(int(kp * HEADING_KP_MULTIPLIER), ki, kd)
+            kp, ki, kd, _, _ = self.robot.heading_control.pid()  # type: ignore[reportGeneralTypeIssues]
+            self.robot.heading_control.pid(
+                int(kp * HEADING_KP_MULTIPLIER), ki, kd
+            )
             self.robot.reset()
             self._straight_drive_active = False
         except Exception as e:

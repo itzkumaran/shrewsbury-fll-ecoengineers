@@ -1,60 +1,132 @@
 import umath
 
-from pybricks.tools import wait
+from pybricks.tools import run_task, wait
 
 from robot import TIRE_DIAMETER, robot
 
-ACTION_SETTLE_MS = 100
 DRIVE_SPEED = 250 / 360 * umath.pi * TIRE_DIAMETER
 TURN_RATE = 45
 
 
-def recorded_mission(r: robot):
+async def recorded_mission(r: robot):
     drivebase = r.robot
-    left_attachement = r.lam
-
+    left_attachment = r.lam
+    right_attachment = r.ram
     drivebase.settings(straight_speed=DRIVE_SPEED, turn_rate=TURN_RATE)
+    left_attachment.stop()
+    right_attachment.stop()
+
     drivebase.stop()
-    left_attachement.stop()
-    drivebase.straight(232.6)
-    wait(ACTION_SETTLE_MS)
-    drivebase.turn(-66.3)
-    wait(ACTION_SETTLE_MS)
-    drivebase.straight(462.5)
-    wait(ACTION_SETTLE_MS)
-    drivebase.turn(35.3)
-    wait(ACTION_SETTLE_MS)
-    drivebase.straight(149.1)
-    wait(ACTION_SETTLE_MS)
-    drivebase.turn(31.7)
-    wait(ACTION_SETTLE_MS)
-    drivebase.straight(193.8)
-    wait(ACTION_SETTLE_MS)
-    drivebase.turn(30.2)
-    wait(ACTION_SETTLE_MS)
-    drivebase.straight(260.2)
-    wait(ACTION_SETTLE_MS)
-    drivebase.straight(-39.1)
-    wait(ACTION_SETTLE_MS)
-    drivebase.turn(-74.5)
-    wait(ACTION_SETTLE_MS)
-    drivebase.turn(136.6)
-    wait(ACTION_SETTLE_MS)
-    drivebase.straight(201.8)
-    wait(ACTION_SETTLE_MS)
-    drivebase.turn(27.6)
-    wait(ACTION_SETTLE_MS)
-    drivebase.straight(162.2)
-    wait(ACTION_SETTLE_MS)
-    drivebase.turn(19.6)
-    wait(ACTION_SETTLE_MS)
-    drivebase.straight(421.7)
-    wait(ACTION_SETTLE_MS)
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.straight(233.6, wait=False)
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
     drivebase.stop()
-    left_attachement.stop()
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.straight(-232.9, wait=False)
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.straight(76.0, wait=False)
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.turn(-67.4, wait=False)
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.turn(65.4, wait=False)
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.straight(-40.8, wait=False)
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.run_time(-120, 1710, wait=False)
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.run_time(120, 1919, wait=False)
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.run_time(120, 1530, wait=False)
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.run_time(-120, 1558, wait=False)
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.stop()
+    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
+        await wait(10)
+    drivebase.stop()
+    left_attachment.stop()
+    right_attachment.stop()
 
 
 if __name__ == "__main__":
     r = robot()
     r.show_battery_level()
-    recorded_mission(r)
+    run_task(recorded_mission(r))
