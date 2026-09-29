@@ -21,7 +21,7 @@ async def recorded_mission(r: robot):
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
         await wait(10)
-    drivebase.straight(233.6, wait=False)
+    drivebase.straight(190.1, wait=False)
     left_attachment.stop()
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
@@ -31,7 +31,7 @@ async def recorded_mission(r: robot):
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
         await wait(10)
-    drivebase.straight(-232.9, wait=False)
+    drivebase.straight(-139.0, wait=False)
     left_attachment.stop()
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
@@ -41,7 +41,7 @@ async def recorded_mission(r: robot):
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
         await wait(10)
-    drivebase.straight(76.0, wait=False)
+    drivebase.turn(-62.2, wait=False)
     left_attachment.stop()
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
@@ -51,7 +51,7 @@ async def recorded_mission(r: robot):
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
         await wait(10)
-    drivebase.turn(-67.4, wait=False)
+    drivebase.turn(70.1, wait=False)
     left_attachment.stop()
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
@@ -61,17 +61,7 @@ async def recorded_mission(r: robot):
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
         await wait(10)
-    drivebase.turn(65.4, wait=False)
-    left_attachment.stop()
-    right_attachment.stop()
-    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
-        await wait(10)
-    drivebase.stop()
-    left_attachment.stop()
-    right_attachment.stop()
-    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
-        await wait(10)
-    drivebase.straight(-40.8, wait=False)
+    drivebase.straight(-34.0, wait=False)
     left_attachment.stop()
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
@@ -82,7 +72,7 @@ async def recorded_mission(r: robot):
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
         await wait(10)
     drivebase.stop()
-    left_attachment.run_time(-120, 1710, wait=False)
+    left_attachment.run_time(-120, 1080, wait=False)
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
         await wait(10)
@@ -92,7 +82,7 @@ async def recorded_mission(r: robot):
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
         await wait(10)
     drivebase.stop()
-    left_attachment.run_time(120, 1919, wait=False)
+    left_attachment.run_time(120, 1230, wait=False)
     right_attachment.stop()
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
         await wait(10)
@@ -103,7 +93,7 @@ async def recorded_mission(r: robot):
         await wait(10)
     drivebase.stop()
     left_attachment.stop()
-    right_attachment.run_time(120, 1530, wait=False)
+    right_attachment.run_time(120, 960, wait=False)
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
         await wait(10)
     drivebase.stop()
@@ -113,7 +103,7 @@ async def recorded_mission(r: robot):
         await wait(10)
     drivebase.stop()
     left_attachment.stop()
-    right_attachment.run_time(-120, 1558, wait=False)
+    right_attachment.run_time(-120, 930, wait=False)
     while not drivebase.done() or not left_attachment.done() or not right_attachment.done():
         await wait(10)
     drivebase.stop()
