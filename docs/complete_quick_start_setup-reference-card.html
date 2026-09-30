@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bolton Robotics — Complete Dev Environment Setup Guide</title>
+<title>ECO Engineers — Complete Dev Environment Setup Guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
@@ -568,7 +568,7 @@
 <!-- ══ HEADER ═══════════════════════════════════════════════════ -->
 <header>
   <a class="back-link" href="index.html">&#8592; All Resources</a>
-  <div class="section-label">Bolton Robotics · First Lego League</div>
+  <div class="section-label">ECO Engineers · First Lego League</div>
   <h1>Complete Dev Environment <em>Setup Guide</em></h1>
 
   <div class="audience-tag">
@@ -582,7 +582,7 @@
     This is a one-time setup — once it's done, your everyday routine is just a few clicks.
     A separate, shorter guide covers the student workflow for laptops where setup is already complete.  
     <br/><strong>NOTE:</strong> For easier setup, use this guide for automated scripts: 
-    <a href="https://github.com/stevenerat/spike_basecode/blob/main/scripts/laptop-provisioning-guide.md" target="_blank" rel="noopener">Laptop Provisioning Guide</a>
+    <a href="https://github.com/itzkumaran/shrewsbury-fll-ecoengineers/blob/main/scripts/laptop-provisioning-guide.md" target="_blank" rel="noopener">Laptop Provisioning Guide</a>
   </p>
 </header>
 
@@ -679,11 +679,11 @@
         <div class="step-index">4</div>
         <div>
           <div class="step-title">Download the Team's Code</div>
-          <div class="step-why">This pulls a copy of the Bolton Robotics codebase from GitHub onto your computer. Every coach and student starts from the same shared foundation, so nobody is working in isolation.</div>
+          <div class="step-why">This pulls a copy of the ECO Engineers codebase from GitHub onto your computer. Every coach and student starts from the same shared foundation, so nobody is working in isolation.</div>
           <div class="step-how">Run in a terminal:</div>
-          <div class="cmd-block">git clone https://github.com/fssfll/spike_basecode
-cd spike_basecode</div>
-          <div class="step-why"><strong style="color: red">The "spike_basecode" directory is the "root" of your repository</strong></div>
+          <div class="cmd-block">git clone https://github.com/itzkumaran/shrewsbury-fll-ecoengineers
+cd shrewsbury-fll-ecoengineers</div>
+          <div class="step-why"><strong style="color: red">The "shrewsbury-fll-ecoengineers" directory is the "root" of your repository</strong></div>
         </div>
       </div>
 
@@ -736,7 +736,7 @@ source .venv/bin/activate
         <div>
           <div class="step-title">Open the Project in VS Code</div>
           <div class="step-why">Opening the whole project folder — not just a single file — lets VS Code see and apply all the project's settings and configuration at once.</div>
-          <div class="step-how"><strong>File → Open Folder</strong> → select the <code>spike_basecode</code> folder.</div>
+          <div class="step-how"><strong>File → Open Folder</strong> → select the <code>shrewsbury-fll-ecoengineers</code> folder.</div>
         </div>
       </div>
 
@@ -800,7 +800,7 @@ source .venv/bin/activate
         <div class="wf-icon-col"><div class="wf-icon">🔵</div><div class="wf-connector"></div></div>
         <div class="wf-content">
           <div class="wf-label">Power on the SPIKE Hub</div>
-          <div class="wf-why">The hub communicates with your computer over Bluetooth — no USB cable or extra app required.</div>
+          <div class="wf-why">The hub communicates with your computer over Bluetooth — no USB cable or extra app required. Keep the robot still for about 1 second after a program starts so the gyro can calibrate.</div>
         </div>
       </div>
 
@@ -823,8 +823,8 @@ source .venv/bin/activate
       <div class="wf-node">
         <div class="wf-icon-col"><div class="wf-icon">💾</div></div>
         <div class="wf-content">
-          <div class="wf-label">Commit and push to GitHub</div>
-          <div class="wf-why">Saving your work to GitHub shares it with the whole team and keeps a full history of every version — nothing is ever lost.</div>
+          <div class="wf-label">Commit and push to your branch</div>
+          <div class="wf-why">Push commits to <em>your own branch</em> on GitHub (never directly to main). The coach reviews and merges your branch into main once the work is ready — that's what keeps a full history and shares your work with the whole team.</div>
         </div>
       </div>
 
@@ -868,26 +868,26 @@ source .venv/bin/activate
       <div class="json-block">{
   "configurations": [
     {
-      "name": "<span class="json-highlight">Thought Process</span>",
+      "name": "<span class="json-highlight">lucky-chicken-1</span>",
       "type": "debugpy",
       "request": "launch",
       "noDebug": true,
       "module": "pybricksdev",
       "args": [
         "run", "ble",
-        "--name", "<span class="json-highlight">Thought Process</span>",
+        "--name", "<span class="json-highlight">lucky-chicken-1</span>",
         "main.py"
       ]
     },
     {
-      "name": "<span class="json-highlight">Bot Two</span>",
+      "name": "<span class="json-highlight">lucky-chicken-2</span>",
       "type": "debugpy",
       "request": "launch",
       "noDebug": true,
       "module": "pybricksdev",
       "args": [
         "run", "ble",
-        "--name", "<span class="json-highlight">Bot Two</span>",
+        "--name", "<span class="json-highlight">lucky-chicken-2</span>",
         "main.py"
       ]
     }
@@ -939,8 +939,8 @@ source .venv/bin/activate
 
 <!-- ══ FOOTER ════════════════════════════════════════════════════ -->
 <footer>
-  <div class="footer-left">Bolton Robotics · FIRST Lego League · Coaches Edition</div>
-  <div class="footer-right">spike_basecode · github.com/fssfll</div>
+  <div class="footer-left">ECO Engineers · FIRST Lego League · Coaches Edition</div>
+  <div class="footer-right">shrewsbury-fll-ecoengineers · github.com/itzkumaran</div>
 </footer>
 
 </body>

@@ -1,6 +1,6 @@
 # Provisioning a New FLL Team Laptop
 
-A guide for any coach setting up a donated laptop for a Bolton Robotics FLL
+A guide for any coach setting up a donated laptop for a ECO Engineers FLL
 team. Start with **Quick Start** below. If anything's unclear, the
 **Detailed Steps** section that follows expands every line with specifics.
 
@@ -10,7 +10,7 @@ The major steps, in order. The script does the heavy lifting — most of
 these are short:
 
 1. **Team email** — `fss.fll.<TeamNumber>@gmail.com` or `@outlook.com`. Create one if the team doesn't have it.
-2. **Team GitHub** — a `fssfll<TeamNumber>` user with a fork of `stevenerat/spike_basecode`. Create and fork if needed.
+2. **Your GitHub account** — each team member uses their own unique GitHub username. Create one if you don't already have one. You'll clone the shared team repo at `itzkumaran/shrewsbury-fll-ecoengineers`; there is no per-user fork.
 3. **Download** `setup-fll-laptop.ps1` from the chapter upstream to the new laptop (e.g., to `Downloads`).
 4. **Open PowerShell as Administrator** and run:
 
@@ -20,7 +20,7 @@ these are short:
    ```
 
 5. **Follow the prompts** when the script asks — confirm new-team data if it's a new team, then complete the GitHub Desktop sign-in and clone during the script's pause partway through.
-6. **Verify** — repo cloned to `~\repos\spike_basecode\`, VS Code opens it with the `.venv` interpreter, and a test program runs on a SPIKE Prime hub.
+6. **Verify** — repo cloned to `~\repos\shrewsbury-fll-ecoengineers\`, VS Code opens it with the `.venv` interpreter, and a test program runs on a SPIKE Prime hub.
 7. **Pin shortcuts** to the taskbar from the desktop icons the script created.
 
 That's the whole flow — typically 30 to 60 minutes, mostly waiting on
@@ -59,16 +59,22 @@ Outlook is the fallback when Gmail signup is blocked.
 This email becomes the team's identity for GitHub, commits, and any chapter
 communications. Don't reuse a coach's personal email.
 
-### 2. Set up a team GitHub account (if one does not already exist)
+### 2. Set up a GitHub account for each team member
 
-Chapter standard username: `fssfll<TeamNumber>` (e.g. `fssfll27041`).
+Each team member — coach, mentor, or student — uses their own unique
+GitHub username. There is no team-wide standard username; a personal
+GitHub account is fine.
 
-The account needs to have a fork of `stevenerat/spike_basecode`. If the
-team is new, sign in as the team's GitHub user and click **Fork** at
-`https://github.com/stevenerat/spike_basecode`.
+Every user clones the same shared team repository at
+`itzkumaran/shrewsbury-fll-ecoengineers`. There is no per-user fork; the
+team maintains one shared repo that everyone commits into (with write
+access granted by the repo owner).
 
-2FA is optional — the chapter has only enabled it for teams with a security-
-conscious lead coach. Decide based on who will be using the account.
+If a team member doesn't have a GitHub account yet, they can create one
+at `https://github.com/signup` using any email address.
+
+2FA is recommended but not required. Decide based on who will be using
+the account.
 
 ### 3. Download the setup script to the laptop
 
@@ -77,26 +83,14 @@ Save link as, or use the Raw view → save). This is the bootstrap: the
 script can't be cloned because nothing on the laptop knows how to clone
 yet. Save it somewhere easy to find, like `Downloads`.
 
-The two cases below differ only in whether you sync the team's fork first.
+Go to
+`https://github.com/itzkumaran/shrewsbury-fll-ecoengineers/tree/main/scripts/`,
+open `setup-fll-laptop.ps1`, and save the Raw view. Save it somewhere
+easy to find, like `Downloads`.
 
-#### 3a. New team — download from upstream
-
-Go to `https://github.com/stevenerat/spike_basecode/tree/main/scripts/`,
-open `setup-fll-laptop.ps1`, and save the Raw view. This is the chapter's
-source of truth for the script.
-
-#### 3b. Existing team — sync the fork first, then download
-
-If the team already has a fork (e.g., this laptop is replacing an old one),
-the fork may be behind upstream. Before downloading the script:
-
-1. Go to `https://github.com/fssfll<TeamNumber>/spike_basecode`
-2. If GitHub shows "This branch is N commits behind", click **Sync fork**
-3. Then download `setup-fll-laptop.ps1` from the team's fork (or from
-   upstream — either is fine once the fork is synced)
-
-Syncing the fork first ensures the cloned repo the script lands on the
-laptop will have the latest chapter code, not just the latest script.
+Since the team maintains one shared repo (no per-user forks), every user
+downloads the same script from the same URL — there is no separate
+new-team vs. existing-team flow.
 
 ### 4. Open PowerShell as Administrator and run the script
 
@@ -122,15 +116,29 @@ laptop will have the latest chapter code, not just the latest script.
 
 The script is mostly hands-off, but it will pause for input in a few places:
 
-- **New team setup**: if the team number is not in the script's known-teams
-  list, it will ask you to confirm and prompt for the team email, display
-  name, and GitHub username. Examples are shown in the prompts.
+- **Prompts for your info**: the script asks for your team number, your
+  GitHub username (each team member has their own — no team-wide
+  standard), and your name plus GitHub-linked email for Git commits.
 - **GitHub Desktop authentication and clone**: midway through, the script
   launches GitHub Desktop and pauses. Follow the on-screen instructions:
-  sign in to GitHub as the team user, clone the fork to the path the script
-  shows, and — when asked "How are you planning to use this fork?" — select
-  **For my own purposes**, not "To contribute to the parent project". Press
-  Enter in the PowerShell window when the clone is done.
+  sign in to GitHub with your own account (GitHub Desktop uses browser
+  OAuth — no password typed in the app), clone the shared team repo
+  (`itzkumaran/shrewsbury-fll-ecoengineers`) to the path the script shows,
+  and press Enter in the PowerShell window when the clone is done.
+- **If git ever asks you for a password on the command line**, do NOT
+  type your GitHub account password. GitHub has not accepted passwords
+  for git operations since 2021. Instead, generate a **Personal Access
+  Token (PAT)** and paste that:
+    1. Go to `https://github.com/settings/tokens`
+    2. **Generate new token → Generate new token (classic)**
+    3. Tick the **`repo`** scope
+    4. Set expiration (90 days is a reasonable default)
+    5. Click **Generate token**
+    6. **Copy the token immediately** — GitHub only shows it once
+    7. Paste it wherever git asks for a password
+
+  Windows Credential Manager will remember the token after the first
+  push, so you only paste it once per laptop.
 
 If anything goes sideways, the script is safe to re-run from the start.
 
@@ -138,9 +146,9 @@ If anything goes sideways, the script is safe to re-run from the start.
 
 When the script finishes, confirm:
 
-- The repo folder exists at `C:\Users\<user>\repos\spike_basecode\` and
+- The repo folder exists at `C:\Users\<user>\repos\shrewsbury-fll-ecoengineers\` and
   contains the chapter code (not just a `.git` folder).
-- GitHub Desktop is signed in as the team user and shows the cloned repo.
+- GitHub Desktop is signed in with your own account and shows the cloned repo.
 - VS Code can be launched from the desktop shortcut **Open Team N Code**,
   and the bottom-right status bar shows a `.venv` Python interpreter. If
   not, use `Ctrl+Shift+P → Python: Select Interpreter → .venv`.
@@ -183,7 +191,7 @@ software, existing configs, and an existing clone will all be detected and
 skipped.
 
 **Where to find help.** The script is at
-`https://github.com/stevenerat/spike_basecode/blob/main/scripts/setup-fll-laptop.ps1`.
-For chapter-specific questions, contact Steve. For technical questions
+`https://github.com/itzkumaran/shrewsbury-fll-ecoengineers/blob/main/scripts/setup-fll-laptop.ps1`.
+For team-specific questions, contact the team lead. For technical questions
 about a specific failure mode, capture the PowerShell output and send it
 along.

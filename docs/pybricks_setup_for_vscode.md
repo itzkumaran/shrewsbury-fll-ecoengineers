@@ -3,7 +3,7 @@ Audience: Coaches, mentors, and advanced students setting up Pybricks developmen
 
 
 Target machine: macOS
-Repo: /Users/<username>/Your/Path/To/spike_basecode
+Repo: /Users/<username>/Your/Path/To/shrewsbury-fll-ecoengineers
 Python: 3.13.2
 VS Code: 1.108.0
 Hub firmware: Pybricks already installed and working via WebIDE
@@ -42,7 +42,7 @@ Open VS Code
 Command Palette → Shell Command: Install 'code' command in PATH
 
 1. Go to the existing repo
-cd /Users/<username>/Your/Path/To/spike_basecode
+cd /Users/<username>/Your/Path/To/shrewsbury-fll-ecoengineers
 
 
 Confirm this is a git repo:
@@ -147,7 +147,7 @@ Create .vscode/launch.json:
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run on BR-01",
+      "name": "Run on lucky-chicken-1",
       "type": "debugpy",
       "request": "launch",
       "module": "pybricksdev",
@@ -155,12 +155,25 @@ Create .vscode/launch.json:
         "run",
         "ble",
         "--name",
-        "BR-01",
+        "lucky-chicken-1",
+        "${workspaceFolder}/xbox_controller.py"
+      ]
+    },
+    {
+      "name": "Run on lucky-chicken-2",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pybricksdev",
+      "args": [
+        "run",
+        "ble",
+        "--name",
+        "lucky-chicken-2",
         "${workspaceFolder}/main.py"
       ]
     },
     {
-      "name": "Run on BR-02",
+      "name": "Run on lucky-chicken-3",
       "type": "debugpy",
       "request": "launch",
       "module": "pybricksdev",
@@ -168,12 +181,12 @@ Create .vscode/launch.json:
         "run",
         "ble",
         "--name",
-        "BR-02",
+        "lucky-chicken-3",
         "${workspaceFolder}/main.py"
       ]
     },
     {
-      "name": "Run on BR-03",
+      "name": "Run on lucky-chicken-4",
       "type": "debugpy",
       "request": "launch",
       "module": "pybricksdev",
@@ -181,7 +194,7 @@ Create .vscode/launch.json:
         "run",
         "ble",
         "--name",
-        "BR-03",
+        "lucky-chicken-4",
         "${workspaceFolder}/main.py"
       ]
     }
@@ -206,12 +219,13 @@ pybricksdev devices ble
 
 You should see output like:
 
-BR-01
-BR-02
-BR-03
+lucky-chicken-1
+lucky-chicken-2
+lucky-chicken-3
+lucky-chicken-4
 
 
-If you don’t:
+If you don't:
 
 Confirm hub firmware is Pybricks
 
@@ -226,7 +240,7 @@ mission1.py
 
 Open Run and Debug panel
 
-Select Run on BR-01
+Select Run on lucky-chicken-1
 
 Press F5
 
@@ -246,7 +260,7 @@ If motors move: ✅ success.
 
 Once per session (Terminal):
 
-cd spike_basecode
+cd shrewsbury-fll-ecoengineers
 source .venv/bin/activate
 code .
 
@@ -306,3 +320,47 @@ To get the best editing experience when working with this project in VS Code, yo
      -- helpful warnings while typing
 
 These extensions allow VS Code to better understand the Pybricks APIs used in this project. Without them, the editor may show missing autocomplete or confusing red squiggles even when the code is correct.
+
+14. Robot Configuration and Calibration
+
+All robot settings live in robot.py. Mission files, xbox_controller.py and recorded_mission.py all use them — never re-define motors or geometry in another file.
+
+Current values (verified on lucky-chicken-2):
+
+  - Left drive motor: Port B, COUNTERCLOCKWISE
+  - Right drive motor: Port F, CLOCKWISE
+  - Left / right attachment motors: Port A / Port E
+  - TIRE_DIAMETER = 56 mm, AXLE_TRACK = 113 mm
+  - STRAIGHT_ACCEL = 500, TURN_ACCEL = 1000 (values above ~1000-10000 are rejected by Pybricks with "Invalid argument")
+  - Gyro-assisted driving ON, HEADING_KP_MULTIPLIER = 8.0
+
+Sign convention:
+
+  - straight(+) = forward, straight(-) = backward
+  - turn(+) = right (clockwise), turn(-) = left
+
+Startup: keep the robot still for about 1 second after a program starts so the gyro can calibrate.
+
+Checking a robot (do this for each hub, e.g. lucky-chicken-1, 3, 4):
+
+  a) Ports — run the port test and confirm motors on A, B, E, F:
+
+     python -m pybricksdev run ble --name lucky-chicken-N port_test.py
+
+     "Motor OK" = motor connected. The error text shown for empty ports is expected.
+
+  b) Direction — r.robot.straight(100) must drive FORWARD and r.robot.turn(90) must turn RIGHT.
+     - Drives backward AND turns left: flip BOTH LDM_POSITIVE_DIRECTION and RDM_POSITIVE_DIRECTION.
+     - Drives forward but turns the wrong way: the left/right ports are swapped in PORT_MAPPING.
+     - Spins in place instead of driving straight: only one motor direction is wrong.
+
+  c) Distance — mark the start, run r.robot.straight(300), measure.
+     If it is off, set TIRE_DIAMETER = 56 * measured / 300 and scale AXLE_TRACK by the same factor.
+
+  d) Turns — r.robot.turn(360) should end facing the start direction.
+     Over-rotating: lower AXLE_TRACK. Under-rotating: raise it.
+
+  e) Drift — run 5 forward/back 300 mm cycles and measure the sideways offset from the start mark.
+     If it is large, first check the front ball caster spins freely and is centered between the wheels,
+     then raise HEADING_KP_MULTIPLIER (tested: 2 -> 20 mm, 4 -> 9 mm, 8 -> 3 mm on lucky-chicken-2).
+

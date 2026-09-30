@@ -6,10 +6,13 @@
 # centralizes all necessary imports so that mission files can use robot features 
 # without redundant imports.
 #
-# Author: Bolton Robotics
+# Author: ECO Engineers
 # Initial Date: 2025-03-15
-# Last Modified: 2026-03-12
-# Version: 1.1
+# Last Modified: 2026-09-27
+# Version: 1.2
+#
+# Calibration: values below were verified live on lucky-chicken-2.
+# See docs/pybricks_setup_for_vscode.md section 14 before changing them.
 #
 # Dependencies:
 # - pybricks.pupdevices (Motor, ColorSensor)
@@ -31,6 +34,8 @@
 ################################################################################
 
 # --- Pybricks imports (available at runtime on the hub) ---
+import umath
+
 from pybricks.pupdevices import Motor, ColorSensor
 from pybricks.parameters import (
     Port,
@@ -75,28 +80,30 @@ if TYPE_CHECKING:
             self,
             speed: int,
             time: int,
-            then: Stop = ...,
-            wait: bool = ...,
+            then: Stop = Stop.HOLD,
+            wait: bool = True,
         ) -> None: ...
 
         def run_angle(
             self,
             speed: int,
             rotation_angle: int,
-            then: Stop = ...,
-            wait: bool = ...,
+            then: Stop = Stop.HOLD,
+            wait: bool = True,
         ) -> None: ...
 
         def run_until_stalled(
             self,
             speed: int,
-            then: Stop = ...,
-            duty_limit: Optional[int] = ...,
+            then: Stop = Stop.COAST,
+            duty_limit: Optional[int] = None,
         ) -> int: ...
 
         def dc(self, duty: int) -> None: ...
 
         def stop(self) -> None: ...
+
+        def done(self) -> bool: ...
 
     class ColorSensorLike(Protocol):
         """Structural type matching both ColorSensor and NoOpColorSensor."""
@@ -168,15 +175,13 @@ else:
 #   r.robot.arc()
 #   r.robot.drive()
 TIRE_DIAMETER: int = 56  # mm
-AXLE_TRACK: int = 130  # distance between the wheels, mm
-STRAIGHT_SPEED: int = 300  # mm/sec
-STRAIGHT_ACCEL: int = 100  # mm/sec^2; gentler acceleration reduces wheel slip
-# Small encoder-mode trim counters the gradual left drift.
-FORWARD_STRAIGHT_CORRECTION: float = -1.0  # deg/sec
-# Reverse needs its own trim because wheel load changes direction.
-REVERSE_STRAIGHT_CORRECTION: float = 0.0  # deg/sec
+AXLE_TRACK: int = 113  # mm; gyro-calibrated on lucky-chicken-2 (was 130, over-rotated turns ~15%)
+STRAIGHT_SPEED: float = 250 / 360 * umath.pi * TIRE_DIAMETER  # mm/sec; matches recorded mission wheel speed
+STRAIGHT_ACCEL: int = 500  # mm/sec^2 — gentler start/stop reduces ball-caster push drift (tested on lucky-chicken-2)
+HEADING_KP_MULTIPLIER: float = 8.0  # strong gyro heading hold; 8x gave least drift and least oscillation (lucky-chicken-2)
 TURN_RATE: int = 45  # deg/sec
-TURN_ACCEL: int = 45  # deg/sec^2
+TURN_ACCEL: int = 1000  # deg/sec^2 — same platform cap as STRAIGHT_ACCEL
+ATTACHMENT_SPEED: int = 120  # deg/sec; matches recorded mission speed
 
 #############################################
 # Define Robot Port Mappings
@@ -185,11 +190,12 @@ TURN_ACCEL: int = 45  # deg/sec^2
 # wired your robot.  If you don't have color sensor(s) or
 # attachment motor(s) you can comment them out.
 PORT_MAPPING: dict[str, Port] = {
-    "ldm": Port.B,  # Left Drive Motor (Required)
-    "rdm": Port.F,  # Right Drive Motor (Required)
-    "lam": Port.C,  # Left Attachment Motor (Optional)
-    #"lcs": Port.A,  # Left Color Sensor (Optional)
-    #"rcs": Port.B,  # Right Color Sensor (Optional)
+    "ldm": Port.B,  # Left Drive Motor (Required)  — verified physical left on lucky-chicken-2
+    "rdm": Port.F,  # Right Drive Motor (Required) — verified physical right on lucky-chicken-2
+    "lam": Port.A,  # Left Attachment Motor  — verified on lucky-chicken-2
+    "ram": Port.E,  # Right Attachment Motor — verified on lucky-chicken-2
+    #"lcs": Port.C,  # Left Color Sensor (Optional — Port C is free)
+    #"rcs": Port.D,  # Right Color Sensor (Optional — Port D is free)
 }
 
 
@@ -223,8 +229,12 @@ DISPLAY_ORIENTATION: Side = Side.BOTTOM
 # or upside down.  If your attachment motor is spinning in the wrong
 # direction or if your robot spins in circles when you are trying to
 # drive straight, you likely need to change one of these settings.
-LDM_POSITIVE_DIRECTION: Direction = Direction.CLOCKWISE
-RDM_POSITIVE_DIRECTION: Direction = Direction.COUNTERCLOCKWISE
+LDM_POSITIVE_DIRECTION: Direction = Direction.COUNTERCLOCKWISE
+# RDM is mirror-mounted on the opposite side of the robot, so its
+# positive (forward) sense is the opposite rotation from the LDM.
+# Both set to the same direction makes the wheels fight each other and
+# the robot spins in place instead of driving straight.
+RDM_POSITIVE_DIRECTION: Direction = Direction.CLOCKWISE
 LAM_POSITIVE_DIRECTION: Direction = Direction.CLOCKWISE
 RAM_POSITIVE_DIRECTION: Direction = Direction.CLOCKWISE
 
@@ -273,6 +283,9 @@ class NoOpMotor:
 
     def stop(self):
         return None
+
+    def done(self):
+        return True
 
 
 class NoOpColorSensor:
@@ -339,11 +352,17 @@ class robot:
             self.robot = DriveBase(
                 self.ldm, self.rdm, TIRE_DIAMETER, AXLE_TRACK,
             )
-            # Encoder control avoids orientation-dependent gyro corrections.
-            self.robot.use_gyro(False)
+            # Gyro holds heading (verified: <1 deg drift per 300 mm on lucky-chicken-2).
+            # Keep the robot still for ~1 s at startup so the gyro can calibrate.
+            self.robot.use_gyro(True)
             self.robot.settings(
                 STRAIGHT_SPEED, STRAIGHT_ACCEL,
                 TURN_RATE, TURN_ACCEL,
+            )
+            # Strengthen heading correction (keeps ki/kd at Pybricks defaults).
+            kp, ki, kd, _, _ = self.robot.heading_control.pid()  # type: ignore[reportGeneralTypeIssues]
+            self.robot.heading_control.pid(
+                int(kp * HEADING_KP_MULTIPLIER), ki, kd
             )
             self.robot.reset()
             self._straight_drive_active = False
@@ -358,6 +377,7 @@ class robot:
                     self.port_mapping["lam"],
                     positive_direction=LAM_POSITIVE_DIRECTION,
                 )
+                self.lam.control.limits(speed=ATTACHMENT_SPEED)
             except Exception as e:
                 print("Left attachment motor initialization error:", e)
         
@@ -368,6 +388,7 @@ class robot:
                     self.port_mapping["ram"],
                     positive_direction=RAM_POSITIVE_DIRECTION,
                 )
+                self.ram.control.limits(speed=ATTACHMENT_SPEED)
             except Exception as e:
                 print("Right attachment motor initialization error", e)
         
@@ -401,12 +422,7 @@ class robot:
             self.robot.reset()
             self._straight_drive_active = True
 
-        steering_correction = (
-            FORWARD_STRAIGHT_CORRECTION
-            if speed > 0
-            else REVERSE_STRAIGHT_CORRECTION
-        )
-        self.robot.drive(speed, steering_correction)
+        self.robot.drive(speed, 0)
 
     def stop_drive(self):
         """Stop driving and require a new heading reference next time."""
