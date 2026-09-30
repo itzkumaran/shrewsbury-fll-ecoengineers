@@ -10,6 +10,7 @@ from robot import (
     robot,
 )
 from recorded_mission import recorded_mission
+from robot_check import run_robot_check
 
 # Initialize robot instance to configure PrimeHub gyro orientation,
 # drive base geometry, and motor directions centrally from robot.py.
@@ -225,12 +226,14 @@ async def main1():
     previous_y_pressed = False
     previous_a_pressed = False
     previous_lt_pressed = False
+    previous_rt_pressed = False
     while True:
         pressed = controller.buttons.pressed()
         y_pressed = Button.Y in pressed
         a_pressed = Button.A in pressed
-        left_trigger, _ = controller.triggers()
+        left_trigger, right_trigger = controller.triggers()
         lt_pressed = left_trigger >= TRIGGER_PRESS_THRESHOLD
+        rt_pressed = right_trigger >= TRIGGER_PRESS_THRESHOLD
 
         if y_pressed and not previous_y_pressed:
             if not is_recording:
@@ -274,9 +277,24 @@ async def main1():
                 right_attachment.stop()
                 is_replaying = False
 
+        if rt_pressed and not previous_rt_pressed and not is_recording and not is_replaying:
+            print("Running robot check; keep the robot clear and hands off")
+            is_replaying = True
+            drivebase.stop()
+            left_attachment.stop()
+            right_attachment.stop()
+            try:
+                await run_robot_check(r)
+            finally:
+                r.stop_drive()
+                left_attachment.stop()
+                right_attachment.stop()
+                is_replaying = False
+
         previous_y_pressed = y_pressed
         previous_a_pressed = a_pressed
         previous_lt_pressed = lt_pressed
+        previous_rt_pressed = rt_pressed
 
         if is_replaying:
             await wait(10)

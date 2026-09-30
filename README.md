@@ -42,6 +42,7 @@ Measured accuracy: 300 mm commanded = ~300 mm driven; 90° turns within 1°; 3 m
 | Y | Start / stop recording (prints mission code when stopped) |
 | A | Replay the last recording |
 | LT | Run `recorded_mission.py` |
+| RT | Run `robot_check.py` (clear the area before starting) |
 
 ## Other robots
 
