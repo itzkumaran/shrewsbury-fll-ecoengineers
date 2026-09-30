@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run on Lucky Chicken (save log)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/run-hub.sh",
+      "args": ["Lucky Chicken", "robot.py"],
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Check ports on Lucky Chicken (save log)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/run-hub.sh",
+      "args": ["Lucky Chicken", "check_ports.py"],
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ]
+}

@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run on lucky chicken",
+      "name": "Run on Lucky Chicken",
       "type": "debugpy",
       "request": "launch",
       "module": "pybricksdev",
@@ -12,8 +12,8 @@
         "run",
         "ble",
         "--name",
-        "lucky chicken",
-        "${workspaceFolder}/xbox_controller.py"
+        "Lucky Chicken",
+        "${workspaceFolder}/robot.py"
       ]
     },
     {
