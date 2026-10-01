@@ -16,6 +16,14 @@
       "args": ["Lucky Chicken", "check_ports.py"],
       "problemMatcher": [],
       "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Hardware test on Lucky Chicken (save log)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/run-hub.sh",
+      "args": ["Lucky Chicken", "hardware_test.py"],
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
     }
   ]
 }

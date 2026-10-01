@@ -17,14 +17,15 @@
 from pybricks.iodevices import PUPDevice
 from pybricks.parameters import Port
 
-PORTS = {
-    "A": Port.A,
-    "B": Port.B,
-    "C": Port.C,
-    "D": Port.D,
-    "E": Port.E,
-    "F": Port.F,
-}
+# List (not dict) so ports print in A-F order on MicroPython
+PORTS = [
+    ("A", Port.A),
+    ("B", Port.B),
+    ("C", Port.C),
+    ("D", Port.D),
+    ("E", Port.E),
+    ("F", Port.F),
+]
 
 # LEGO Powered Up device type IDs
 DEVICE_NAMES = {
@@ -51,7 +52,7 @@ DEVICE_NAMES = {
 
 def check_ports():
     print("Port check:")
-    for letter, port in PORTS.items():
+    for letter, port in PORTS:
         try:
             device_id = PUPDevice(port).info()["id"]
             name = DEVICE_NAMES.get(device_id, "Unknown device")
