@@ -27,3 +27,4 @@ def mission_seven(r: robot):
 if __name__ == "__main__":
     from main import main
     main()
+
