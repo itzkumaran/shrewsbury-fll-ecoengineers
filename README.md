@@ -51,3 +51,11 @@ The configuration was calibrated on lucky-chicken-2. Before using another robot,
 ## How we calibrated the robot
 
 See [docs/robot_experiments.md](docs/robot_experiments.md) — the experiments, results, and fixes, written for students.
+
+Mission explanation
+
+https://www.youtube.com/watch?v=4e1f6WESohE
+
+Mission functional
+
+https://www.youtube.com/watch?v=KVfVDjWXRNY

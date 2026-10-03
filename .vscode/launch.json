@@ -13,7 +13,7 @@
         "ble",
         "--name",
         "Lucky Chicken",
-        "${workspaceFolder}/robot.py"
+        "${workspaceFolder}/mission_five.py"
       ]
     },
     {
@@ -28,6 +28,21 @@
         "ble",
         "--name",
         "lucky-chicken-2",
+        "${workspaceFolder}/hardware_test.py"
+      ]
+    },
+    {
+      "name": "Run on lucky-chicken-1",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pybricksdev",
+      "subProcess": false,
+      "console": "integratedTerminal",
+      "args": [
+        "run",
+        "ble",
+        "--name",
+        "lucky-chicken-1",
         "${workspaceFolder}/mission_one.py"
       ]
     },

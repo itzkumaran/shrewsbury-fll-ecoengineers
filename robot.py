@@ -189,7 +189,7 @@ ATTACHMENT_SPEED: int = 120  # deg/sec; matches recorded mission speed
 # This needs to be setup according to how you
 # wired your robot.  If you don't have color sensor(s) or
 # attachment motor(s) you can comment them out.
-PORT_MAPPING: dict[str, Port] = {
+LUCKY_CHICKEN_2_PORTS: dict[str, Port] = {
     "ldm": Port.B,  # Left Drive Motor (Required)  — verified physical left on lucky-chicken-2
     "rdm": Port.F,  # Right Drive Motor (Required) — verified physical right on lucky-chicken-2
     "lam": Port.A,  # Left Attachment Motor  — verified on lucky-chicken-2
@@ -197,6 +197,19 @@ PORT_MAPPING: dict[str, Port] = {
     #"lcs": Port.C,  # Left Color Sensor (Optional — Port C is free)
     #"rcs": Port.D,  # Right Color Sensor (Optional — Port D is free)
 }
+
+# Port scan: ports_sample_output_lucky_chicken.out; drive verified by hardware_test.py
+LUCKY_CHICKEN_PORTS: dict[str, Port] = {
+    "ldm": Port.A,  # Left Drive Motor (Required)  — SPIKE Large Motor
+    "rdm": Port.E,  # Right Drive Motor (Required) — SPIKE Large Motor
+    "lam": Port.C,  # Left Attachment Motor  — SPIKE Medium Motor (swap with ram if backwards)
+    "ram": Port.D,  # Right Attachment Motor — SPIKE Medium Motor
+    "lcs": Port.B,  # Left Color Sensor  (swap with rcs if backwards)
+    "rcs": Port.F,  # Right Color Sensor
+}
+
+# Pick the robot you are running on.
+PORT_MAPPING: dict[str, Port] = LUCKY_CHICKEN_PORTS
 
 
 #############################################
