@@ -30,13 +30,13 @@ from pybricks.tools import wait
 #############################################
 # Configuration (Lucky Chicken)
 #############################################
-LEFT_DRIVE_PORT = Port.A  # SPIKE Large Motor
-RIGHT_DRIVE_PORT = Port.E  # SPIKE Large Motor
+LEFT_DRIVE_PORT = Port.B  # SPIKE Large Motor
+RIGHT_DRIVE_PORT = Port.F  # SPIKE Large Motor
 LEFT_DRIVE_DIRECTION = Direction.COUNTERCLOCKWISE
 RIGHT_DRIVE_DIRECTION = Direction.CLOCKWISE
 
-ATTACHMENT_PORTS = [("C", Port.C), ("D", Port.D)]  # SPIKE Medium Motors
-COLOR_SENSOR_PORTS = [("B", Port.B), ("F", Port.F)]  # SPIKE Color Sensors
+ATTACHMENT_PORTS = [("C", Port.A), ("D", Port.E)]  # SPIKE Medium Motors
+#COLOR_SENSOR_PORTS = [("B", Port.B), ("F", Port.F)]  # SPIKE Color Sensors
 
 TIRE_DIAMETER = 56  # mm
 AXLE_TRACK = 113  # mm
@@ -118,9 +118,9 @@ def main():
         test_motor(hub, number, "attachment motor (port " + letter + ")", port)
         number += 1
 
-    for letter, port in COLOR_SENSOR_PORTS:
-        test_color_sensor(hub, number, letter, port)
-        number += 1
+    # for letter, port in COLOR_SENSOR_PORTS:
+    #     test_color_sensor(hub, number, letter, port)
+    #     number += 1
 
     test_drive(hub, number, left, right)
 
