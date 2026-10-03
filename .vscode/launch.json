@@ -43,7 +43,7 @@
         "ble",
         "--name",
         "lucky-chicken-3",
-        "${workspaceFolder}/main.py"
+        "${workspaceFolder}/xbox_controller.py"
       ]
     },
     {

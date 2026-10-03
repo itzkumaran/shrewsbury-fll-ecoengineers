@@ -144,7 +144,7 @@ def print_recording_code():
         else:
             print("    right_attachment.stop()")
         print("    while not drivebase.done() or not left_attachment.done() or not right_attachment.done():")
-        print("        await wait(10)")
+        print("        wait(10)")
 
     print("    drivebase.stop()")
     print("    left_attachment.stop()")
