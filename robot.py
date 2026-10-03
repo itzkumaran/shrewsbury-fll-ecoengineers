@@ -220,7 +220,7 @@ PORT_MAPPING: dict[str, Port] = {
 #         |     <-()->    |             
 #          ---------------
 #               BOTTOM
-DISPLAY_ORIENTATION: Side = Side.BOTTOM
+DISPLAY_ORIENTATION: Side = Side.TOP
 
 #############################################
 # Define Forward (Positive) Rotation For Each Motor
